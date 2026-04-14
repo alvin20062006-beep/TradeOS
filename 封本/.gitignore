@@ -1,0 +1,66 @@
+# === Python ===
+__pycache__/
+*.py[cod]
+*.pyd
+*.egg-info/
+*.egg
+dist/
+build/
+.eggs/
+
+# === Test & Dev ===
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.nox/
+.mypy_cache/
+*.log
+
+# === MLflow & Experiment logs ===
+mlruns/
+mlruns_local/
+*.mlflow.db
+mlruns.db
+
+# === External dependencies (non-project code) ===
+qlib/
+nautilus_trader/
+OpenSpace/
+supermemory/
+.clawhub/
+.openclaw/
+.learnings/
+.library/
+config/
+
+# === Local temp ===
+.tmp/
+tmp_*/
+*.tmp
+memory/
+memory - \345\211\257\346\234\254/
+
+# === Secrets & credentials ===
+*.env
+.env
+.env.*
+.secrets/
+local_*.yaml
+local_*.json
+local_*.toml
+credentials/
+secrets/
+keys/
+
+# === IDE & OS ===
+.vscode/settings.json
+.idea/
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+
+# === Node ===
+node_modules/
+package-lock.json

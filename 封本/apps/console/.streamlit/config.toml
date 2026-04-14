@@ -1,0 +1,6 @@
+[server]
+headless = false
+showEmailPrompt = false
+
+[browser]
+serverHeadless = false

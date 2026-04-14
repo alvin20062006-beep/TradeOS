@@ -1,0 +1,53 @@
+"""
+apps/api/main.py — FastAPI 应用工厂
+"""
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+
+from apps.api.routers import (
+    health,
+    analysis,
+    arbitration,
+    risk,
+    audit,
+    strategy_pool,
+    pipeline,
+    system,
+    auth,
+)
+
+app = FastAPI(
+    title="AI Trading Tool",
+    version="1.0.0",
+    description="Phase 1-10 核心 + 产品化层 API",
+)
+
+# CORS
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Routers
+app.include_router(health.router)          # /health, /version
+app.include_router(system.router)          # /system/status, /system/modules
+app.include_router(analysis.router, prefix="/api/v1")
+app.include_router(arbitration.router, prefix="/api/v1")
+app.include_router(risk.router, prefix="/api/v1")
+app.include_router(audit.router, prefix="/api/v1")
+app.include_router(strategy_pool.router, prefix="/api/v1")
+app.include_router(pipeline.router, prefix="/api/v1")
+app.include_router(auth.router, prefix="/api/v1")  # /auth/audit, /auth/users
+
+
+@app.get("/")
+async def root():
+    return {
+        "message": "AI Trading Tool API",
+        "version": "1.0.0",
+        "docs": "/docs",
+        "status": "/system/status",
+    }

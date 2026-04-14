@@ -1,0 +1,11 @@
+.venv-qlib311/
+tmp_pyqlib_probe/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
