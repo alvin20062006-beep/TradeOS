@@ -252,6 +252,6 @@ Important boundaries:
 
 ## Current Naming | 当前命名
 
-The original delivery folder name has been normalized from `封本` to `TradeOS`.
+The original delivery folder name has been normalized to `TradeOS`v1.0.
 
-原先的交付目录名已经从 `封本` 统一规范为 `TradeOS`。
+原先的交付目录名已统一规范为 `TradeOS`v1.0。
