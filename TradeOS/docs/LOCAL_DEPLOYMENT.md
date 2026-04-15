@@ -1,4 +1,4 @@
-# 本地部署指南（Windows）
+﻿# 本地部署指南（Windows）
 
 当前机器系统：Windows
 
@@ -16,7 +16,7 @@
 在项目根目录执行：
 
 ```powershell
-cd "C:\Users\Alvin\Desktop\AI交易TradeOS\封本"
+cd "C:\Users\Alvin\Desktop\AI交易TradeOS\TradeOS"
 python -m pip install -r requirements-local.txt
 ```
 
@@ -157,7 +157,7 @@ python -m pip install -r requirements-local.txt
 ## 9. 交付后最终文件树（核心）
 
 ```text
-封本/
+TradeOS/
 ├── apps/
 │   ├── api/
 │   ├── cli.py
@@ -178,3 +178,4 @@ python -m pip install -r requirements-local.txt
 ├── start.ps1
 └── _make_shortcut.ps1
 ```
+

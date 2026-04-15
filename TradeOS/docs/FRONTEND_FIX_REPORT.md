@@ -1,7 +1,7 @@
 ﻿# 前端修复结果
 
 生成时间：2026-04-15
-目录基准：`封本`
+目录基准：`TradeOS`
 
 ## A. 修改了哪些前端文件
 - `apps/console/main.py`
@@ -67,7 +67,7 @@
 
 ## E. 双击快捷方式后的真实行为
 - 桌面快捷方式：`C:\Users\Alvin\Desktop\TradeOS Console.lnk`
-- 目标：`封本\start.bat`
+- 目标：`TradeOS\start.bat`
 - `start.bat` -> `python run.py start`
 - `run.py start` 会并行启动 API 与 Console
 - `apps.run_console` 会检查 API，如未启动则后台拉起 API，然后自动打开浏览器
@@ -90,3 +90,4 @@
 - Feedback 明确采用 submit + status 的 task-style UI
 - Audit / Auth 全部保持只读查询，不制造假写入口
 - 首屏直接展示 6 个模块导航，用户无需猜哪里可以点
+

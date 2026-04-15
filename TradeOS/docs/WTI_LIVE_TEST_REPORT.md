@@ -1,4 +1,4 @@
-# WTI Live Test Report
+﻿# WTI Live Test Report
 
 Test date: 2026-04-15  
 Target symbol: `CL=F`  
@@ -6,7 +6,7 @@ Execution path: `Yahoo Finance + FRED -> six-module live pipeline -> Phase 6 -> 
 
 ## A. Test Environment
 
-- Workspace: `C:\Users\Alvin\Desktop\AI交易TradeOS\封本`
+- Workspace: `C:\Users\Alvin\Desktop\AI交易TradeOS\TradeOS`
 - Host OS: Windows
 - Python: `3.14.3`
 - Live entry used:
@@ -305,3 +305,4 @@ After live runs, the product audit API read back real append-only records:
 ### Final judgment
 
 `CL=F` can already serve as a valid commodity evidence case for the project's real-data live path. It proves that the system can ingest real Yahoo/FRED data, drive multiple analysis modules, produce a real arbitration decision, pass through risk control, and write append-only audit objects without falling back to manual scoring as the primary path.
+

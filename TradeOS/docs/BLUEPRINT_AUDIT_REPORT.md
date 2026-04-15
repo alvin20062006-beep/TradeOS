@@ -1,7 +1,7 @@
-# Blueprint Audit Report
+﻿# Blueprint Audit Report
 
 Audit date: 2026-04-15
-Audit target: `C:\Users\Alvin\Desktop\AI交易TradeOS\封本`
+Audit target: `C:\Users\Alvin\Desktop\AI交易TradeOS\TradeOS`
 Audit scope: Phase 1-10 master blueprint + productization layer + Yahoo live data + closed-loop verification
 
 ## A. Added / Modified File Tree
@@ -11,7 +11,7 @@ This audit did not change core Phase 1-10 semantics.
 Files already present and used as audit evidence:
 
 ```text
-封本/
+TradeOS/
 ├─ apps/
 │  ├─ api/routers/
 │  │  ├─ analysis.py
@@ -368,3 +368,4 @@ Not fully.
 3. Install `cvxpy` and rerun research/backtest integration
 4. Replace mock product audit query endpoints with real Phase 8 persistence readback
 5. Keep placeholder/proxy labels explicit for OrderFlow and Sentiment side channels
+

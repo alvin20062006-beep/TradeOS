@@ -1,11 +1,11 @@
-# 交付报告
+﻿# 交付报告
 
-本报告对应交付目录：`C:\Users\Alvin\Desktop\AI交易TradeOS\封本`
+本报告对应交付目录：`C:\Users\Alvin\Desktop\AI交易TradeOS\TradeOS`
 
 ## A. 最终文件树（核心）
 
 ```text
-封本/
+TradeOS/
 ├─ apps/
 │  ├─ api/
 │  ├─ console/
@@ -73,7 +73,7 @@
 条件说明：
 
 - 当前机器为 Windows，已提供 `.ps1`、`.bat` 和桌面快捷方式方案
-- `封本` 目录可独立安装依赖、独立启动 API / Console / CLI
+- `TradeOS` 目录可独立安装依赖、独立启动 API / Console / CLI
 - 已统一最终启动方式为 `run.py` 与 `start.ps1` / `start.bat`
 - 文档已覆盖依赖安装、环境变量初始化、API 启动、Console 启动、常见报错排查
 
@@ -102,3 +102,4 @@
 - Macro 的统一 forecast 字段
 
 以上缺口都已在矩阵文档中标明，不影响“正式结构封盘”，但影响“全部细项满配完成”判断。
+
