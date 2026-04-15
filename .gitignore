@@ -9,3 +9,5 @@ __pycache__/
 .ruff_cache/
 .coverage
 htmlcov/
+qlib/.git-local-backup/
+nautilus_trader/.git-local-backup/
