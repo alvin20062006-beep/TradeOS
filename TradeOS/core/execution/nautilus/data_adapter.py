@@ -1,9 +1,7 @@
 """
-Nautilus Data Adapter - 行情数据适配
+Nautilus Data Adapter - 琛屾儏鏁版嵁閫傞厤
 
-将本项目 DataProvider 数据转换为 Nautilus Data 对象。
-支持 QuoteTick, TradeTick, Bar 等数据类型。
-"""
+灏嗘湰椤圭洰 DataProvider 鏁版嵁杞崲涓?Nautilus Data 瀵硅薄銆?鏀寔 QuoteTick, TradeTick, Bar 绛夋暟鎹被鍨嬨€?"""
 
 from __future__ import annotations
 
@@ -22,15 +20,13 @@ except ImportError:
     AggressorSide = object
     Price = Quantity = object
 
-from ai_trading_tool.core.execution.nautilus.instrument_mapper import InstrumentMapper
+from core.execution.nautilus.instrument_mapper import InstrumentMapper
 
 
 class DataAdapter:
-    """行情数据适配器
-    
-    负责：
-    - 本项目市场数据 -> Nautilus Data 对象转换
-    - 支持 QuoteTick（报价）、TradeTick（成交）、Bar（K线）
+    """琛屾儏鏁版嵁閫傞厤鍣?    
+    璐熻矗锛?    - 鏈」鐩競鍦烘暟鎹?-> Nautilus Data 瀵硅薄杞崲
+    - 鏀寔 QuoteTick锛堟姤浠凤級銆乀radeTick锛堟垚浜わ級銆丅ar锛圞绾匡級
     """
     
     def __init__(self, instrument_mapper: InstrumentMapper):
@@ -46,31 +42,30 @@ class DataAdapter:
         timestamp: datetime,
         venue: Optional[str] = None,
     ) -> "QuoteTick":
-        """将报价数据转换为 Nautilus QuoteTick
+        """灏嗘姤浠锋暟鎹浆鎹负 Nautilus QuoteTick
         
         Args:
-            symbol: 标的代码
-            bid_price: 买价
-            bid_size: 买量
-            ask_price: 卖价
-            ask_size: 卖量
-            timestamp: 时间戳
-            venue: 交易所
+            symbol: 鏍囩殑浠ｇ爜
+            bid_price: 涔颁环
+            bid_size: 涔伴噺
+            ask_price: 鍗栦环
+            ask_size: 鍗栭噺
+            timestamp: 鏃堕棿鎴?            venue: 浜ゆ槗鎵€
             
         Returns:
-            QuoteTick: Nautilus 报价对象
+            QuoteTick: Nautilus 鎶ヤ环瀵硅薄
         """
         if not NAUTILUS_AVAILABLE:
             raise RuntimeError("NautilusTrader not available")
         
         instrument_id = self._mapper.to_instrument_id(symbol, venue)
         
-        # 获取 instrument 用于精度
+        # 鑾峰彇 instrument 鐢ㄤ簬绮惧害
         instrument = self._mapper.get_cached(symbol)
         if instrument is None:
             instrument = self._mapper.create_equity(symbol, venue or "NASDAQ")
         
-        # 转换时间戳为纳秒
+        # 杞崲鏃堕棿鎴充负绾崇
         ts_ns = self._datetime_to_ns(timestamp)
         
         return QuoteTick(
@@ -93,19 +88,16 @@ class DataAdapter:
         timestamp: datetime,
         venue: Optional[str] = None,
     ) -> "TradeTick":
-        """将成交数据转换为 Nautilus TradeTick
+        """灏嗘垚浜ゆ暟鎹浆鎹负 Nautilus TradeTick
         
         Args:
-            symbol: 标的代码
-            price: 成交价
-            size: 成交量
-            aggressor_side: 主动成交方向 ("BUY" or "SELL")
-            trade_id: 成交ID
-            timestamp: 时间戳
-            venue: 交易所
+            symbol: 鏍囩殑浠ｇ爜
+            price: 鎴愪氦浠?            size: 鎴愪氦閲?            aggressor_side: 涓诲姩鎴愪氦鏂瑰悜 ("BUY" or "SELL")
+            trade_id: 鎴愪氦ID
+            timestamp: 鏃堕棿鎴?            venue: 浜ゆ槗鎵€
             
         Returns:
-            TradeTick: Nautilus 成交对象
+            TradeTick: Nautilus 鎴愪氦瀵硅薄
         """
         if not NAUTILUS_AVAILABLE:
             raise RuntimeError("NautilusTrader not available")
@@ -114,15 +106,15 @@ class DataAdapter:
         
         instrument_id = self._mapper.to_instrument_id(symbol, venue)
         
-        # 获取 instrument 用于精度
+        # 鑾峰彇 instrument 鐢ㄤ簬绮惧害
         instrument = self._mapper.get_cached(symbol)
         if instrument is None:
             instrument = self._mapper.create_equity(symbol, venue or "NASDAQ")
         
-        # 转换时间戳为纳秒
+        # 杞崲鏃堕棿鎴充负绾崇
         ts_ns = self._datetime_to_ns(timestamp)
         
-        # 转换 aggressor side
+        # 杞崲 aggressor side
         if aggressor_side.upper() == "BUY":
             side = AggressorSide.BUYER
         else:
@@ -147,25 +139,20 @@ class DataAdapter:
         close_price: Decimal,
         volume: Decimal,
         timestamp: datetime,
-        bar_type: str,  # 如 "AAPL.NASDAQ-1-MINUTE-LAST-EXTERNAL"
+        bar_type: str,  # 濡?"AAPL.NASDAQ-1-MINUTE-LAST-EXTERNAL"
         venue: Optional[str] = None,
     ) -> "Bar":
-        """将K线数据转换为 Nautilus Bar
+        """灏咾绾挎暟鎹浆鎹负 Nautilus Bar
         
         Args:
-            symbol: 标的代码
-            open_price: 开盘价
-            high_price: 最高价
-            low_price: 最低价
-            close_price: 收盘价
-            volume: 成交量
-            timestamp: 时间戳
-            bar_type: K线类型标识
-            venue: 交易所
+            symbol: 鏍囩殑浠ｇ爜
+            open_price: 寮€鐩樹环
+            high_price: 鏈€楂樹环
+            low_price: 鏈€浣庝环
+            close_price: 鏀剁洏浠?            volume: 鎴愪氦閲?            timestamp: 鏃堕棿鎴?            bar_type: K绾跨被鍨嬫爣璇?            venue: 浜ゆ槗鎵€
             
         Returns:
-            Bar: Nautilus K线对象
-        """
+            Bar: Nautilus K绾垮璞?        """
         if not NAUTILUS_AVAILABLE:
             raise RuntimeError("NautilusTrader not available")
         
@@ -173,15 +160,15 @@ class DataAdapter:
         
         instrument_id = self._mapper.to_instrument_id(symbol, venue)
         
-        # 获取 instrument 用于精度
+        # 鑾峰彇 instrument 鐢ㄤ簬绮惧害
         instrument = self._mapper.get_cached(symbol)
         if instrument is None:
             instrument = self._mapper.create_equity(symbol, venue or "NASDAQ")
         
-        # 转换时间戳为纳秒
+        # 杞崲鏃堕棿鎴充负绾崇
         ts_ns = self._datetime_to_ns(timestamp)
         
-        # 解析 bar_type
+        # 瑙ｆ瀽 bar_type
         bar_type_obj = BarType.from_str(bar_type)
         
         return Bar(
@@ -196,26 +183,27 @@ class DataAdapter:
         )
     
     def _datetime_to_ns(self, dt: datetime) -> int:
-        """将 datetime 转换为纳秒时间戳
+        """灏?datetime 杞崲涓虹撼绉掓椂闂存埑
         
         Args:
-            dt: Python datetime 对象
+            dt: Python datetime 瀵硅薄
             
         Returns:
-            int: 纳秒级时间戳
+            int: 绾崇绾ф椂闂存埑
         """
-        # 秒 -> 纳秒
+        # 绉?-> 绾崇
         seconds = dt.timestamp()
         return int(seconds * 1_000_000_000)
     
     def _ns_to_datetime(self, ns_timestamp: int) -> datetime:
-        """将纳秒时间戳转换为 datetime
+        """灏嗙撼绉掓椂闂存埑杞崲涓?datetime
         
         Args:
-            ns_timestamp: 纳秒级时间戳
+            ns_timestamp: 绾崇绾ф椂闂存埑
             
         Returns:
-            datetime: Python datetime 对象
+            datetime: Python datetime 瀵硅薄
         """
         seconds = ns_timestamp / 1_000_000_000
         return datetime.fromtimestamp(seconds)
+

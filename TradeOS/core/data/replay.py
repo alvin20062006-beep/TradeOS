@@ -17,7 +17,7 @@ from typing import AsyncIterator, Callable, Generic, Optional, TypeVar
 import pandas as pd
 import pyarrow.parquet as pq
 
-from ai_trading_tool.core.data.schemas import (
+from core.data.schemas import (
     MarketBar,
     MarketTick,
     OrderBookSnapshot,
@@ -214,7 +214,7 @@ class TickReplayReader(ReplayReader[MarketTick]):
         )
     
     def _row_to_object(self, row: pd.Series) -> MarketTick:
-        from ai_trading_tool.core.schemas import Side
+        from core.schemas import Side
         return MarketTick(
             symbol=self.symbol,
             timestamp=row["timestamp"],
@@ -243,7 +243,7 @@ class TradeReplayReader(ReplayReader[TradePrint]):
         )
     
     def _row_to_object(self, row: pd.Series) -> TradePrint:
-        from ai_trading_tool.core.schemas import Side
+        from core.schemas import Side
         return TradePrint(
             symbol=self.symbol,
             timestamp=row["timestamp"],
@@ -469,3 +469,4 @@ __all__ = [
     "HistoricalReplay",
     "ReplayDemo",
 ]
+

@@ -1,171 +1,94 @@
-"""
-ExecutionRuntime - 执行引擎运行时
-
-管理执行引擎生命周期（start/stop/health）。
-不承载策略/风控逻辑。
-"""
+"""Execution runtime orchestration."""
 
 from __future__ import annotations
 
 from datetime import datetime
-from typing import TYPE_CHECKING, Optional
+from typing import Optional
 
-from ai_trading_tool.core.execution.enums import ExecutionMode
-from ai_trading_tool.core.execution.models import EngineStatus, RuntimeReport
-from ai_trading_tool.core.execution.nautilus import NAUTILUS_AVAILABLE
-
-if TYPE_CHECKING:
-    from ai_trading_tool.core.execution.nautilus.adapter import NautilusAdapter
-    from ai_trading_tool.core.execution.router import NautilusRouter
+from core.execution.base import ExecutionRouter
+from core.execution.enums import EngineStatus, ExecutionMode
+from core.execution.models import ExecutionIntent, ExecutionResult, RuntimeReport
+from core.execution.router import build_default_router
+from core.execution.sinks import ExecutionEventSink
 
 
 class ExecutionRuntime:
-    """
-    执行引擎运行时。
-
-    管理执行引擎生命周期（start/stop/health）。
-    不承载策略/风控逻辑。
-
-    设计约束：
-    - runtime 只做生命周期管理
-    - Nautilus 不可用时，启动抛出 RuntimeError
-    - 不静默失败
-    """
+    """Lifecycle manager for execution routing and engine dispatch."""
 
     def __init__(
         self,
-        router: Optional[NautilusRouter] = None,
-        mode: ExecutionMode = ExecutionMode.BACKTEST,
-    ):
-        """
-        初始化 ExecutionRuntime。
-
-        Args:
-            router: NautilusRouter 实例（可选）
-            mode: 执行模式（默认 BACKTEST）
-
-        Raises:
-            RuntimeError: NautilusTrader 未安装
-        """
-        if not NAUTILUS_AVAILABLE:
-            raise RuntimeError(
-                "NautilusTrader not available. "
-                "Install with: pip install nautilus-trader"
-            )
-
-        self._router = router
+        router: Optional[ExecutionRouter] = None,
+        *,
+        mode: ExecutionMode = ExecutionMode.SIMULATION,
+        sink: Optional[ExecutionEventSink] = None,
+        venue: str = "SIMULATED",
+    ) -> None:
         self._mode = mode
+        self._router = router or build_default_router(mode=mode, sink=sink, venue=venue)
         self._status = EngineStatus.STOPPED
         self._started_at: Optional[datetime] = None
         self._stopped_at: Optional[datetime] = None
-
-    # ==================== 生命周期管理 ====================
+        self._last_error: Optional[str] = None
+        self._last_error_at: Optional[datetime] = None
 
     async def start(self) -> None:
-        """
-        启动运行时。
-
-        Raises:
-            RuntimeError: 启动失败或 router 未配置
-        """
         if self._status == EngineStatus.RUNNING:
             return
-
-        if not self._router:
-            raise RuntimeError("No router configured. Call configure() first.")
-
         self._status = EngineStatus.STARTING
-
         try:
-            await self._router.start()
+            if hasattr(self._router, "start_all"):
+                await self._router.start_all()  # type: ignore[attr-defined]
             self._started_at = datetime.utcnow()
             self._status = EngineStatus.RUNNING
-
-        except Exception as e:
+        except Exception as exc:
             self._status = EngineStatus.ERROR
-            raise RuntimeError(f"Failed to start ExecutionRuntime: {e}") from e
+            self._last_error = str(exc)
+            self._last_error_at = datetime.utcnow()
+            raise
 
     async def stop(self) -> None:
-        """
-        停止运行时。
-
-        Raises:
-            RuntimeError: 停止失败
-        """
         if self._status == EngineStatus.STOPPED:
             return
-
         self._status = EngineStatus.STOPPING
-
         try:
-            if self._router:
-                await self._router.stop()
-
+            if hasattr(self._router, "stop_all"):
+                await self._router.stop_all()  # type: ignore[attr-defined]
             self._stopped_at = datetime.utcnow()
             self._status = EngineStatus.STOPPED
-
-        except Exception as e:
+        except Exception as exc:
             self._status = EngineStatus.ERROR
-            raise RuntimeError(f"Failed to stop ExecutionRuntime: {e}") from e
+            self._last_error = str(exc)
+            self._last_error_at = datetime.utcnow()
+            raise
 
     async def restart(self) -> None:
-        """
-        重启运行时。
-
-        Raises:
-            RuntimeError: 重启失败
-        """
         await self.stop()
         await self.start()
 
-    # ==================== 配置管理 ====================
+    async def execute(self, intent: ExecutionIntent) -> ExecutionResult:
+        if self._status != EngineStatus.RUNNING:
+            raise RuntimeError("ExecutionRuntime is not running")
+        engine = await self._router.route(intent)
+        return await engine.execute_intent(intent)
 
-    def configure(self, router: NautilusRouter) -> None:
-        """
-        配置路由器。
-
-        Args:
-            router: NautilusRouter 实例
-
-        Raises:
-            RuntimeError: 运行时正在运行
-        """
+    def configure(self, router: ExecutionRouter) -> None:
         if self._status == EngineStatus.RUNNING:
             raise RuntimeError("Cannot configure while runtime is running")
-
         self._router = router
 
-    def register_adapter(self, adapter: NautilusAdapter) -> None:
-        """
-        注册 adapter 到路由器。
-
-        Args:
-            adapter: NautilusAdapter 实例
-
-        Raises:
-            RuntimeError: 路由器未配置
-        """
-        if not self._router:
-            raise RuntimeError("No router configured")
-
-        self._router.register_adapter(adapter)
-
-    # ==================== 健康检查 ====================
-
     def health_check(self) -> RuntimeReport:
-        """
-        执行健康检查。
+        adapter_status: dict[str, str] = {}
+        total_orders = 0
+        total_fills = 0
 
-        Returns:
-            RuntimeReport 包含运行时状态信息
-        """
-        adapter_status = {}
-
-        if self._router:
-            for venue in self._router.list_adapters():
-                adapter = self._router.get_adapter(venue)
-                if adapter:
-                    adapter_status[venue] = adapter.engine_status().value
+        if hasattr(self._router, "list_engines") and hasattr(self._router, "get_engine"):
+            for venue in self._router.list_engines():  # type: ignore[attr-defined]
+                engine = self._router.get_engine(venue)  # type: ignore[attr-defined]
+                if engine is None:
+                    continue
+                adapter_status[venue] = "RUNNING" if getattr(engine, "is_running", False) else "STOPPED"
+                total_orders += len(getattr(engine, "_orders", {}))
+                total_fills += sum(len(v) for v in getattr(engine, "_fills", {}).values())
 
         return RuntimeReport(
             status=self._status.value,
@@ -173,78 +96,24 @@ class ExecutionRuntime:
             started_at=self._started_at.isoformat() if self._started_at else None,
             stopped_at=self._stopped_at.isoformat() if self._stopped_at else None,
             adapters=adapter_status,
+            total_orders=total_orders,
+            total_fills=total_fills,
+            last_error=self._last_error,
+            last_error_at=self._last_error_at.isoformat() if self._last_error_at else None,
         )
 
-    def is_healthy(self) -> bool:
-        """
-        检查运行时是否健康。
-
-        Returns:
-            是否健康
-        """
-        return self._status == EngineStatus.RUNNING
-
-    # ==================== 状态查询 ====================
-
-    def status(self) -> EngineStatus:
-        """
-        获取运行时状态。
-
-        Returns:
-            EngineStatus
-        """
-        return self._status
-
-    def uptime_seconds(self) -> Optional[int]:
-        """
-        获取运行时长（秒）。
-
-        Returns:
-            运行时长（未启动返回 None）
-        """
-        if not self._started_at:
-            return None
-
-        if self._status == EngineStatus.STOPPED:
-            if self._stopped_at:
-                delta = self._stopped_at - self._started_at
-                return int(delta.total_seconds())
-            return None
-
-        delta = datetime.utcnow() - self._started_at
-        return int(delta.total_seconds())
-
-    # ==================== 上下文管理器 ====================
-
-    async def __aenter__(self) -> ExecutionRuntime:
-        """异步上下文管理器入口"""
-        await self.start()
-        return self
-
-    async def __aexit__(self, exc_type, exc_val, exc_tb) -> None:
-        """异步上下文管理器出口"""
-        await self.stop()
-
-    # ==================== 属性访问器 ====================
-
     @property
-    def router(self) -> Optional[NautilusRouter]:
-        """路由器"""
+    def router(self) -> ExecutionRouter:
         return self._router
 
     @property
     def mode(self) -> ExecutionMode:
-        """执行模式"""
         return self._mode
 
     @mode.setter
     def mode(self, value: ExecutionMode) -> None:
-        """设置执行模式"""
         self._mode = value
-        if self._router:
-            self._router.mode = value
 
     @property
     def is_running(self) -> bool:
-        """是否正在运行"""
         return self._status == EngineStatus.RUNNING

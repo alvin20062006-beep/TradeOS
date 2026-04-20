@@ -28,7 +28,12 @@ class AuthRepository:
 
     def __init__(self, db_path: Optional[Path] = None) -> None:
         if db_path is None:
-            base = Path.home() / ".ai-trading-tool"
+            try:
+                from infra.config.settings import get_settings
+
+                base = get_settings().app_data_dir / "auth"
+            except Exception:
+                base = Path(__file__).resolve().parents[2] / ".runtime" / "auth"
             base.mkdir(parents=True, exist_ok=True)
             db_path = base / "auth.db"
 

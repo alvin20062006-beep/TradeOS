@@ -25,10 +25,15 @@ class FeedbackRegistry:
     """
 
     def __init__(self, base_path: str | None = None) -> None:
-        if base_path is None:
-            base = Path.home() / ".ai-trading-tool" / "audit" / "feedback_registry"
-        else:
+        if base_path is not None:
             base = Path(base_path)
+        else:
+            try:
+                from infra.config.settings import get_settings
+
+                base = get_settings().app_data_dir / "audit" / "feedback_registry"
+            except Exception:
+                base = Path(__file__).resolve().parents[3] / ".runtime" / "audit" / "feedback_registry"
         self._base = base
         self._base.mkdir(parents=True, exist_ok=True)
 

@@ -13,12 +13,12 @@ from typing import Optional, AsyncIterator, TYPE_CHECKING
 
 import yfinance as yf
 
-from ai_trading_tool.core.data.base import (
+from core.data.base import (
     DataProvider,
     DataDomain,
     MarketDataProvider,
 )
-from ai_trading_tool.core.schemas import (
+from core.schemas import (
     MarketBar,
     MarketTick,
     TimeFrame,
@@ -90,9 +90,9 @@ class YahooFinanceProvider(MarketDataProvider):
         """Check if provider is connected."""
         return self._connected
     
-    # ─────────────────────────────────────────────────────────
+    # 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
     # MARKET DATA
-    # ─────────────────────────────────────────────────────────
+    # 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
     
     async def get_bars(
         self,
@@ -283,3 +283,4 @@ class YahooFinanceProvider(MarketDataProvider):
 
 
 __all__ = ["YahooFinanceProvider"]
+

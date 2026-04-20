@@ -1,38 +1,51 @@
-# Use relative imports so this works without package installation
-from .models import (
-    DatasetVersion,
-    FeatureSetVersion,
-    LabelSetVersion,
-    ResearchExperimentRecord,
-    ModelArtifact,
-    DeploymentCandidate,
-    SignalCandidate,
-)
+"""Lazy exports for the research package.
 
-from .alpha.models import (
-    AlphaFactorSpec,
-    AlphaFactorValue,
-    AlphaFactorSet,
-    AlphaValidationResult,
-    CompositeFactor,
-)
+This module intentionally avoids importing heavy alpha/research dependencies
+at import time so availability/config checks can run without pandas/numpy/qlib.
+"""
 
-from .registry import ExperimentRegistry
+from __future__ import annotations
 
-from .alpha.base import AlphaFactor
+from importlib import import_module
 
-from .alpha.registry import AlphaRegistry
+_EXPORTS: dict[str, tuple[str, str]] = {
+    "DatasetVersion": ("core.research.models", "DatasetVersion"),
+    "FeatureSetVersion": ("core.research.models", "FeatureSetVersion"),
+    "LabelSetVersion": ("core.research.models", "LabelSetVersion"),
+    "ResearchExperimentRecord": ("core.research.models", "ResearchExperimentRecord"),
+    "ModelArtifact": ("core.research.models", "ModelArtifact"),
+    "DeploymentCandidate": ("core.research.models", "DeploymentCandidate"),
+    "SignalCandidate": ("core.research.models", "SignalCandidate"),
+    "AlphaFactorSpec": ("core.research.alpha.models", "AlphaFactorSpec"),
+    "AlphaFactorValue": ("core.research.alpha.models", "AlphaFactorValue"),
+    "AlphaFactorSet": ("core.research.alpha.models", "AlphaFactorSet"),
+    "AlphaValidationResult": ("core.research.alpha.models", "AlphaValidationResult"),
+    "CompositeFactor": ("core.research.alpha.models", "CompositeFactor"),
+    "ExperimentRegistry": ("core.research.registry", "ExperimentRegistry"),
+    "AlphaFactor": ("core.research.alpha.base", "AlphaFactor"),
+    "AlphaRegistry": ("core.research.alpha.registry", "AlphaRegistry"),
+    "AlphaNormalizer": ("core.research.alpha.normalization", "AlphaNormalizer"),
+    "AlphaValidator": ("core.research.alpha.validation", "AlphaValidator"),
+    "AlphaExporter": ("core.research.alpha.export", "AlphaExporter"),
+    "ILabelBuilder": ("core.research.labels.base", "ILabelBuilder"),
+    "ForwardReturnLabel": ("core.research.labels.base", "ForwardReturnLabel"),
+    "DirectionLabel": ("core.research.labels.base", "DirectionLabel"),
+    "EvaluationMetrics": ("core.research.evaluation.metrics", "EvaluationMetrics"),
+}
 
-from .alpha.normalization import AlphaNormalizer
+__all__ = list(_EXPORTS)
 
-from .alpha.validation import AlphaValidator
 
-from .alpha.export import AlphaExporter
+def __getattr__(name: str):
+    if name not in _EXPORTS:
+        raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
-from .labels.base import (
-    ILabelBuilder,
-    ForwardReturnLabel,
-    DirectionLabel,
-)
+    module_name, attr_name = _EXPORTS[name]
+    module = import_module(module_name)
+    value = getattr(module, attr_name)
+    globals()[name] = value
+    return value
 
-from .evaluation.metrics import EvaluationMetrics
+
+def __dir__() -> list[str]:
+    return sorted(list(globals().keys()) + __all__)

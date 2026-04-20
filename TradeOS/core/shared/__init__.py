@@ -4,13 +4,13 @@ AI Trading Tool - Core Shared Module
 Exports shared utilities for all modules.
 """
 
-from ai_trading_tool.core.shared.config import (
+from core.shared.config import (
     get_config,
     reload_config,
     AppConfig,
     ConfigLoader,
 )
-from ai_trading_tool.core.shared.logging import (
+from core.shared.logging import (
     get_logger,
     configure_logging,
     get_trading_logger,
@@ -39,3 +39,4 @@ __all__ = [
     "get_strategy_logger",
     "log_execution",
 ]
+

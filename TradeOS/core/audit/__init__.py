@@ -9,7 +9,7 @@ from core.audit.schemas import (
 )
 from core.audit.engine import DecisionAuditor, ExecutionAuditor, RiskAuditor
 from core.audit.feedback import FeedbackEngine
-from core.audit.closed_loop import FeedbackRegistry, Phase4Updater
+from core.audit.closed_loop import DecisionRegistry, ExecutionRegistry, FeedbackRegistry, Phase4Updater, RiskAuditRegistry
 
 __all__ = [
     "AuditRecord",
@@ -22,6 +22,9 @@ __all__ = [
     "ExecutionAuditor",
     "RiskAuditor",
     "FeedbackEngine",
+    "DecisionRegistry",
+    "ExecutionRegistry",
     "FeedbackRegistry",
     "Phase4Updater",
+    "RiskAuditRegistry",
 ]

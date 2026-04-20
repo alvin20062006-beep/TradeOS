@@ -10,11 +10,11 @@ from __future__ import annotations
 from typing import Optional
 import logging
 
-from ai_trading_tool.core.data.base import (
+from core.data.base import (
     DataProvider,
     DataDomain,
 )
-from ai_trading_tool.core.data.providers import (
+from core.data.providers import (
     YahooFinanceProvider,
     CSVProvider,
 )
@@ -230,3 +230,4 @@ __all__ = [
     "get_provider_for_domain",
     "register_provider",
 ]
+

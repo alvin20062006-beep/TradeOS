@@ -40,6 +40,7 @@ tmp_*/
 *.tmp
 memory/
 memory - \345\211\257\346\234\254/
+.runtime/
 
 # === Secrets & credentials ===
 *.env

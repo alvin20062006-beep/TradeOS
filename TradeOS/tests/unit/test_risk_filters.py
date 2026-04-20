@@ -9,6 +9,7 @@ import pytest
 
 from core.risk.context import MarketContext
 from core.risk.filters import (
+    CorrelationLimitFilter,
     LiquidityCapFilter,
     LossLimitFilter,
     ParticipationRateFilter,
@@ -141,3 +142,38 @@ class TestParticipationRateFilter:
         assert result.passed
         assert result.mode == "cap"
         assert result.adjusted_qty < 500_000.0
+
+
+class TestCorrelationLimitFilter:
+    def setup_method(self) -> None:
+        self.f = CorrelationLimitFilter()
+
+    def test_correlation_under_limit_passes(self) -> None:
+        limits = RiskLimits(max_correlation=0.70)
+        result = self.f.apply(
+            qty=100.0,
+            direction_sign=1,
+            symbol="AAPL",
+            existing_position_symbols=["MSFT"],
+            existing_directions=[1],
+            correlation_value=0.45,
+            risk_limits=limits,
+        )
+        assert result.passed
+        assert result.mode == "pass"
+        assert result.adjusted_qty == 100.0
+
+    def test_correlation_over_limit_reduces_qty(self) -> None:
+        limits = RiskLimits(max_correlation=0.60)
+        result = self.f.apply(
+            qty=100.0,
+            direction_sign=1,
+            symbol="AAPL",
+            existing_position_symbols=["MSFT"],
+            existing_directions=[1],
+            correlation_value=0.92,
+            risk_limits=limits,
+        )
+        assert result.passed
+        assert result.mode == "cap"
+        assert result.adjusted_qty < 100.0

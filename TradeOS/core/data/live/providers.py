@@ -8,6 +8,24 @@ from typing import Any, Optional
 import pandas as pd
 import requests
 import yfinance as yf
+import yfinance.cache as yf_cache
+
+
+def _configure_yfinance_cache() -> None:
+    try:
+        from infra.config.settings import get_settings
+
+        cache_dir = get_settings().app_data_dir / "yfinance"
+    except Exception:
+        cache_dir = __file__
+        from pathlib import Path
+
+        cache_dir = Path(cache_dir).resolve().parents[3] / ".runtime" / "yfinance"
+    cache_dir.mkdir(parents=True, exist_ok=True)
+    yf_cache.set_cache_location(str(cache_dir))
+
+
+_configure_yfinance_cache()
 
 
 YF_INTERVAL_MAP = {

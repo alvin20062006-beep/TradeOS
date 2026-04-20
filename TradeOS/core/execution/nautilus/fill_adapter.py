@@ -1,9 +1,7 @@
 """
-Nautilus Fill Adapter - 成交适配
+Nautilus Fill Adapter - 鎴愪氦閫傞厤
 
-将 Nautilus OrderFilled 事件转换为本项目 FillRecord。
-处理成交数据提取和格式转换。
-"""
+灏?Nautilus OrderFilled 浜嬩欢杞崲涓烘湰椤圭洰 FillRecord銆?澶勭悊鎴愪氦鏁版嵁鎻愬彇鍜屾牸寮忚浆鎹€?"""
 
 from __future__ import annotations
 
@@ -20,46 +18,41 @@ except ImportError:
     OrderFilled = object
     NautilusLiquiditySide = object
 
-from ai_trading_tool.core.execution.enums import Side, LiquiditySide
-from ai_trading_tool.core.execution.models import FillRecord
-from ai_trading_tool.core.execution.nautilus.instrument_mapper import InstrumentMapper
+from core.execution.enums import Side, LiquiditySide
+from core.execution.models import FillRecord
+from core.execution.nautilus.instrument_mapper import InstrumentMapper
 
 
 class FillAdapter:
-    """成交适配器
-    
-    负责：
-    - Nautilus OrderFilled -> FillRecord 转换
-    - 成交数据提取和格式化
+    """鎴愪氦閫傞厤鍣?    
+    璐熻矗锛?    - Nautilus OrderFilled -> FillRecord 杞崲
+    - 鎴愪氦鏁版嵁鎻愬彇鍜屾牸寮忓寲
     """
     
     def __init__(self, instrument_mapper: InstrumentMapper):
         self._mapper = instrument_mapper
     
     def adapt(self, event: "OrderFilled", intent_id: str) -> FillRecord:
-        """将 Nautilus OrderFilled 事件转换为 FillRecord
+        """灏?Nautilus OrderFilled 浜嬩欢杞崲涓?FillRecord
         
         Args:
-            event: Nautilus 成交事件
-            intent_id: 关联的执行意图ID
+            event: Nautilus 鎴愪氦浜嬩欢
+            intent_id: 鍏宠仈鐨勬墽琛屾剰鍥綢D
             
         Returns:
-            FillRecord: 本项目成交记录
-        """
+            FillRecord: 鏈」鐩垚浜よ褰?        """
         if not NAUTILUS_AVAILABLE:
             raise RuntimeError("NautilusTrader not available")
         
-        # 提取 symbol 和 venue
+        # 鎻愬彇 symbol 鍜?venue
         symbol, venue = self._mapper.from_instrument_id(event.instrument_id)
         
-        # 转换方向
+        # 杞崲鏂瑰悜
         side = self._adapt_side(event.order_side)
         
-        # 转换流动性方向
-        liquidity_side = self._adapt_liquidity_side(event.liquidity_side)
+        # 杞崲娴佸姩鎬ф柟鍚?        liquidity_side = self._adapt_liquidity_side(event.liquidity_side)
         
-        # 转换时间戳（纳秒 -> datetime）
-        filled_at = self._ns_to_datetime(event.ts_event)
+        # 杞崲鏃堕棿鎴筹紙绾崇 -> datetime锛?        filled_at = self._ns_to_datetime(event.ts_event)
         
         return FillRecord(
             order_id=str(event.client_order_id),
@@ -77,27 +70,23 @@ class FillAdapter:
         )
     
     def _adapt_side(self, nautilus_side) -> Side:
-        """转换交易方向"""
-        # Nautilus OrderSide 是 flag 枚举，值为整数值
-        # BUY = 1, SELL = 2
+        """杞崲浜ゆ槗鏂瑰悜"""
+        # Nautilus OrderSide 鏄?flag 鏋氫妇锛屽€间负鏁存暟鍊?        # BUY = 1, SELL = 2
         if hasattr(nautilus_side, 'value'):
-            # 如果是枚举类型
-            side_value = nautilus_side.value
+            # 濡傛灉鏄灇涓剧被鍨?            side_value = nautilus_side.value
         else:
-            # 如果是整数
-            side_value = int(nautilus_side)
+            # 濡傛灉鏄暣鏁?            side_value = int(nautilus_side)
         
         if side_value == 1:  # BUY
             return Side.BUY
-        else:  # SELL (值为2)
+        else:  # SELL (鍊间负2)
             return Side.SELL
     
     def _adapt_liquidity_side(
         self,
         nautilus_liquidity: Optional["NautilusLiquiditySide"],
     ) -> Optional[LiquiditySide]:
-        """转换流动性方向
-        
+        """杞崲娴佸姩鎬ф柟鍚?        
         Nautilus LiquiditySide values:
         - NO_LIQUIDITY_SIDE = 0
         - MAKER = 1
@@ -106,8 +95,7 @@ class FillAdapter:
         if nautilus_liquidity is None:
             return None
         
-        # 检查值
-        if hasattr(nautilus_liquidity, 'value'):
+        # 妫€鏌ュ€?        if hasattr(nautilus_liquidity, 'value'):
             ls_value = nautilus_liquidity.value
         else:
             ls_value = int(nautilus_liquidity)
@@ -120,16 +108,15 @@ class FillAdapter:
         return None
     
     def _ns_to_datetime(self, ns_timestamp: int) -> datetime:
-        """将纳秒时间戳转换为 datetime
+        """灏嗙撼绉掓椂闂存埑杞崲涓?datetime
         
         Args:
-            ns_timestamp: 纳秒级时间戳
+            ns_timestamp: 绾崇绾ф椂闂存埑
             
         Returns:
-            datetime: Python datetime 对象
+            datetime: Python datetime 瀵硅薄
         """
-        # 纳秒 -> 秒
-        seconds = ns_timestamp / 1_000_000_000
+        # 绾崇 -> 绉?        seconds = ns_timestamp / 1_000_000_000
         return datetime.fromtimestamp(seconds)
     
     def adapt_many(
@@ -137,13 +124,14 @@ class FillAdapter:
         events: list["OrderFilled"],
         intent_id: str,
     ) -> list[FillRecord]:
-        """批量转换成交事件
+        """鎵归噺杞崲鎴愪氦浜嬩欢
         
         Args:
-            events: Nautilus 成交事件列表
-            intent_id: 关联的执行意图ID
+            events: Nautilus 鎴愪氦浜嬩欢鍒楄〃
+            intent_id: 鍏宠仈鐨勬墽琛屾剰鍥綢D
             
         Returns:
-            list[FillRecord]: 成交记录列表
+            list[FillRecord]: 鎴愪氦璁板綍鍒楄〃
         """
         return [self.adapt(e, intent_id) for e in events]
+

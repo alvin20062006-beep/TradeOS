@@ -1,14 +1,11 @@
 """
-Test Backtest Min Loop - 执行层最小闭环集成测试
+Test Backtest Min Loop - 鎵ц灞傛渶灏忛棴鐜泦鎴愭祴璇?
+楠岃瘉锛?- ExecutionIntent -> Nautilus Order -> FillRecord -> ExecutionReport 瀹屾暣閾捐矾
+- 鏍稿績閫傞厤鍣紙OrderAdapter / FillAdapter锛夌殑杩為€氭€?- 鐢熸垚瀵硅薄锛欵xecutionReport / FillRecord / PositionState
+- Sink 璁板綍杈撳嚭
 
-验证：
-- ExecutionIntent -> Nautilus Order -> FillRecord -> ExecutionReport 完整链路
-- 核心适配器（OrderAdapter / FillAdapter）的连通性
-- 生成对象：ExecutionReport / FillRecord / PositionState
-- Sink 记录输出
-
-API 版本: NautilusTrader 1.225.0
-更新时间: 2026-04-07
+API 鐗堟湰: NautilusTrader 1.225.0
+鏇存柊鏃堕棿: 2026-04-07
 """
 
 import pytest
@@ -17,22 +14,22 @@ from decimal import Decimal
 from unittest.mock import MagicMock, AsyncMock
 from typing import Optional
 
-from ai_trading_tool.core.execution.enums import (
+from core.execution.enums import (
     Side,
     OrderType,
     TimeInForce,
     ExecutionMode,
     ExecutionStatus,
 )
-from ai_trading_tool.core.execution.models import (
+from core.execution.models import (
     ExecutionIntent,
     ExecutionReport,
     FillRecord,
     PositionState,
     OrderSnapshot,
 )
-from ai_trading_tool.core.execution.sinks import ExecutionEventSink, MemoryEventSink
-from ai_trading_tool.core.execution.nautilus import (
+from core.execution.sinks import ExecutionEventSink, MemoryEventSink
+from core.execution.nautilus import (
     InstrumentMapper,
     OrderAdapter,
     FillAdapter,
@@ -43,16 +40,16 @@ from ai_trading_tool.core.execution.nautilus import (
 
 @pytest.mark.skipif(not NAUTILUS_AVAILABLE, reason="NautilusTrader not installed")
 class TestBacktestMinLoop:
-    """执行层最小闭环测试"""
+    """鎵ц灞傛渶灏忛棴鐜祴璇?""
     
     @pytest.fixture
     def instrument_mapper(self):
-        """创建 InstrumentMapper"""
+        """鍒涘缓 InstrumentMapper"""
         return InstrumentMapper()
     
     @pytest.fixture
     def order_adapter(self, instrument_mapper):
-        """创建 OrderAdapter"""
+        """鍒涘缓 OrderAdapter"""
         config = OrderAdapterConfig(
             trader_id="TEST-TRADER-001",
             strategy_id="TEST-STRATEGY-001",
@@ -61,17 +58,17 @@ class TestBacktestMinLoop:
     
     @pytest.fixture
     def fill_adapter(self, instrument_mapper):
-        """创建 FillAdapter"""
+        """鍒涘缓 FillAdapter"""
         return FillAdapter(instrument_mapper)
     
     @pytest.fixture
     def event_sink(self):
-        """创建内存事件 Sink"""
+        """鍒涘缓鍐呭瓨浜嬩欢 Sink"""
         return MemoryEventSink()
     
     @pytest.fixture
     def intent(self):
-        """创建测试 ExecutionIntent"""
+        """鍒涘缓娴嬭瘯 ExecutionIntent"""
         return ExecutionIntent(
             strategy_id="TEST-001",
             symbol="AAPL",
@@ -83,26 +80,26 @@ class TestBacktestMinLoop:
         )
     
     def test_instrument_mapper_equity(self, instrument_mapper):
-        """测试股票标的映射"""
-        # 创建 equity
+        """娴嬭瘯鑲＄エ鏍囩殑鏄犲皠"""
+        # 鍒涘缓 equity
         instrument = instrument_mapper.create_equity("AAPL", "NASDAQ")
         
-        # 验证映射
+        # 楠岃瘉鏄犲皠
         instrument_id = instrument_mapper.to_instrument_id("AAPL", "NASDAQ")
         assert str(instrument_id.symbol) == "AAPL"
         assert str(instrument_id.venue) == "NASDAQ"
         
-        # 验证反向映射
+        # 楠岃瘉鍙嶅悜鏄犲皠
         symbol, venue = instrument_mapper.from_instrument_id(instrument_id)
         assert symbol == "AAPL"
         assert venue == "NASDAQ"
     
     def test_order_adapter_market_order(self, order_adapter, instrument_mapper):
-        """测试 MARKET 订单创建"""
-        # 准备 instrument
+        """娴嬭瘯 MARKET 璁㈠崟鍒涘缓"""
+        # 鍑嗗 instrument
         instrument_mapper.create_equity("AAPL", "NASDAQ")
         
-        # 创建 intent
+        # 鍒涘缓 intent
         intent = ExecutionIntent(
             strategy_id="TEST-001",
             symbol="AAPL",
@@ -112,17 +109,17 @@ class TestBacktestMinLoop:
             quantity=Decimal("100"),
         )
         
-        # 执行转换
+        # 鎵ц杞崲
         order = order_adapter.adapt(intent, client_order_id="TEST-ORDER-001")
         
-        # 验证订单创建成功
+        # 楠岃瘉璁㈠崟鍒涘缓鎴愬姛
         assert order is not None
         assert str(order.client_order_id) == "TEST-ORDER-001"
         assert order.side.name == "BUY"
         assert order.quantity.as_double() == 100.0
     
     def test_order_adapter_limit_order(self, order_adapter, instrument_mapper):
-        """测试 LIMIT 订单创建"""
+        """娴嬭瘯 LIMIT 璁㈠崟鍒涘缓"""
         instrument_mapper.create_equity("AAPL", "NASDAQ")
         
         intent = ExecutionIntent(
@@ -142,7 +139,7 @@ class TestBacktestMinLoop:
         assert order.price.as_double() == 150.00
     
     def test_fill_adapter_basic(self, fill_adapter, instrument_mapper):
-        """测试 FillRecord 创建"""
+        """娴嬭瘯 FillRecord 鍒涘缓"""
         from nautilus_trader.model.events import OrderFilled
         from nautilus_trader.model.identifiers import (
             ClientOrderId, TradeId, StrategyId, TraderId,
@@ -152,14 +149,14 @@ class TestBacktestMinLoop:
         from nautilus_trader.model.objects import Currency, Quantity, Price, Money
         from nautilus_trader.core.uuid import UUID4
         
-        # 准备 instrument
+        # 鍑嗗 instrument
         instrument_mapper.create_equity("AAPL", "NASDAQ")
         instrument_id = instrument_mapper.to_instrument_id("AAPL", "NASDAQ")
         
-        # 创建 USD 货币
+        # 鍒涘缓 USD 璐у竵
         usd = Currency('USD', 2, 840, 'US Dollar', CurrencyType.FIAT)
         
-        # 创建 OrderFilled 事件
+        # 鍒涘缓 OrderFilled 浜嬩欢
         event = OrderFilled(
             trader_id=TraderId('TEST-TRADER-001'),
             strategy_id=StrategyId('TEST-STRATEGY-001'),
@@ -181,10 +178,10 @@ class TestBacktestMinLoop:
             ts_init=1704000000000000000,
         )
         
-        # 执行转换
+        # 鎵ц杞崲
         fill_record = fill_adapter.adapt(event, intent_id="INTENT-001")
         
-        # 验证 FillRecord
+        # 楠岃瘉 FillRecord
         assert fill_record is not None
         assert fill_record.order_id == "TEST-ORDER-001"
         assert fill_record.intent_id == "INTENT-001"
@@ -196,8 +193,8 @@ class TestBacktestMinLoop:
         assert fill_record.fees == Decimal("1.50")
     
     def test_execution_report_generation(self):
-        """测试 ExecutionReport 生成"""
-        # 从 FillRecord 生成 ExecutionReport
+        """娴嬭瘯 ExecutionReport 鐢熸垚"""
+        # 浠?FillRecord 鐢熸垚 ExecutionReport
         fill_record = FillRecord(
             order_id="TEST-ORDER-001",
             intent_id="INTENT-001",
@@ -212,7 +209,7 @@ class TestBacktestMinLoop:
             filled_at=datetime.now(),
         )
         
-        # 生成报告
+        # 鐢熸垚鎶ュ憡
         report = ExecutionReport(
             intent_id=fill_record.intent_id,
             order_id=fill_record.order_id,
@@ -223,16 +220,16 @@ class TestBacktestMinLoop:
             venue=fill_record.venue,
         )
         
-        # 验证报告
+        # 楠岃瘉鎶ュ憡
         assert report.is_terminal
         assert report.is_complete
         assert report.filled_qty == Decimal("100")
         assert report.avg_fill_price == Decimal("150.50")
     
     def test_position_state_update(self):
-        """测试 PositionState 更新"""
+        """娴嬭瘯 PositionState 鏇存柊"""
         from datetime import datetime
-        # 初始仓位
+        # 鍒濆浠撲綅
         position = PositionState(
             symbol="AAPL",
             venue="NASDAQ",
@@ -242,7 +239,7 @@ class TestBacktestMinLoop:
         
         assert position.net_qty == Decimal("0")
         
-        # 买入成交
+        # 涔板叆鎴愪氦
         fill_record = FillRecord(
             order_id="TEST-ORDER-001",
             intent_id="INTENT-001",
@@ -255,24 +252,23 @@ class TestBacktestMinLoop:
             filled_at=datetime.now(),
         )
         
-        # 更新仓位
+        # 鏇存柊浠撲綅
         if fill_record.side == Side.BUY:
             new_qty = position.net_qty + fill_record.filled_qty
             position.net_qty = new_qty
-            # 简化：使用成交价更新均价
-            position.avg_cost = fill_record.fill_price
+            # 绠€鍖栵細浣跨敤鎴愪氦浠锋洿鏂板潎浠?            position.avg_cost = fill_record.fill_price
         else:
             new_qty = position.net_qty - fill_record.filled_qty
             position.net_qty = new_qty
         
-        # 验证更新
+        # 楠岃瘉鏇存柊
         assert position.net_qty == Decimal("100")
         assert position.avg_cost == Decimal("150.00")
     
     @pytest.mark.asyncio
     async def test_sink_record(self, event_sink):
-        """测试 Sink 记录"""
-        # 创建报告
+        """娴嬭瘯 Sink 璁板綍"""
+        # 鍒涘缓鎶ュ憡
         report = ExecutionReport(
             intent_id="INTENT-001",
             order_id="TEST-ORDER-001",
@@ -283,10 +279,10 @@ class TestBacktestMinLoop:
             venue="NASDAQ",
         )
         
-        # 写入 sink（异步方法）
+        # 鍐欏叆 sink锛堝紓姝ユ柟娉曪級
         await event_sink.write_report(report)
         
-        # 验证记录
+        # 楠岃瘉璁板綍
         assert len(event_sink.reports) == 1
         assert event_sink.reports[0].intent_id == "INTENT-001"
     
@@ -299,25 +295,24 @@ class TestBacktestMinLoop:
         event_sink,
         intent,
     ):
-        """测试完整闭环链路
+        """娴嬭瘯瀹屾暣闂幆閾捐矾
         
-        步骤：
-        1. 创建 ExecutionIntent
+        姝ラ锛?        1. 鍒涘缓 ExecutionIntent
         2. Intent -> Nautilus Order (OrderAdapter)
-        3. 模拟 Fill 事件
+        3. 妯℃嫙 Fill 浜嬩欢
         4. Fill -> FillRecord (FillAdapter)
         5. FillRecord -> ExecutionReport
-        6. PositionState 更新
-        7. Sink 记录
+        6. PositionState 鏇存柊
+        7. Sink 璁板綍
         """
-        # Step 1: 准备 instrument
+        # Step 1: 鍑嗗 instrument
         instrument_mapper.create_equity(intent.symbol, intent.venue)
         
         # Step 2: Intent -> Order
         order = order_adapter.adapt(intent, client_order_id="LOOP-ORDER-001")
         assert order is not None
         
-        # Step 3: 模拟 Fill 事件
+        # Step 3: 妯℃嫙 Fill 浜嬩欢
         from nautilus_trader.model.events import OrderFilled
         from nautilus_trader.model.identifiers import (
             ClientOrderId, TradeId, StrategyId, TraderId,
@@ -330,7 +325,7 @@ class TestBacktestMinLoop:
         instrument_id = instrument_mapper.to_instrument_id(intent.symbol, intent.venue)
         usd = Currency('USD', 2, 840, 'US Dollar', CurrencyType.FIAT)
         
-        # 创建 Fill 事件
+        # 鍒涘缓 Fill 浜嬩欢
         fill_event = OrderFilled(
             trader_id=TraderId('TEST-TRADER-001'),
             strategy_id=StrategyId('TEST-STRATEGY-001'),
@@ -371,7 +366,7 @@ class TestBacktestMinLoop:
         assert report.is_terminal
         assert report.is_complete
         
-        # Step 6: PositionState 更新
+        # Step 6: PositionState 鏇存柊
         position = PositionState(
             symbol=intent.symbol,
             venue=intent.venue or "NASDAQ",
@@ -386,17 +381,18 @@ class TestBacktestMinLoop:
         
         assert position.net_qty == Decimal("100")
         
-        # Step 7: Sink 记录（异步方法）
+        # Step 7: Sink 璁板綍锛堝紓姝ユ柟娉曪級
         await event_sink.write_report(report)
         await event_sink.write_fill(fill_record)
         
         assert len(event_sink.reports) == 1
         assert len(event_sink.fills) == 1
         
-        print("\n=== 最小闭环验证成功 ===")
+        print("\n=== 鏈€灏忛棴鐜獙璇佹垚鍔?===")
         print(f"Intent ID: {intent.intent_id}")
         print(f"Order ID: {fill_record.order_id}")
         print(f"Fill Qty: {fill_record.filled_qty} @ {fill_record.fill_price}")
         print(f"Position: {position.net_qty} @ {position.avg_cost}")
         print(f"Report Status: {report.status.value}")
         print(f"Sink Records: {len(event_sink.reports)} reports, {len(event_sink.fills)} fills")
+

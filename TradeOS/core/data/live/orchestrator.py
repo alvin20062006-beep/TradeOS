@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from dataclasses import asdict, dataclass, field
 from datetime import UTC, datetime, timedelta
+from decimal import Decimal
 from types import SimpleNamespace
 from typing import Any, Optional
 
@@ -14,9 +15,13 @@ from core.analysis.orderflow import OrderFlowEngine
 from core.analysis.sentiment import SentimentEngine
 from core.analysis.technical import TechnicalEngine
 from core.arbitration import ArbitrationEngine
-from core.audit.closed_loop import DecisionRegistry, FeedbackRegistry, RiskAuditRegistry
-from core.audit.engine import DecisionAuditor, RiskAuditor
+from core.audit.closed_loop import DecisionRegistry, ExecutionRegistry, FeedbackRegistry, RiskAuditRegistry
+from core.audit.engine import DecisionAuditor, ExecutionAuditor, RiskAuditor
 from core.audit.feedback import FeedbackEngine
+from core.execution import ExecutionIntent, ExecutionRuntime
+from core.execution.enums import ExecutionMode as FloorExecutionMode
+from core.execution.enums import OrderType as FloorOrderType
+from core.execution.enums import Side as FloorSide
 from core.data.live.adapters import (
     FredMacroAdapter,
     YahooFundamentalAdapter,
@@ -32,6 +37,7 @@ from core.schemas import Direction, Portfolio, Regime
 class ModuleRunResult:
     module: str
     status: str
+    coverage_status: str
     provider: str
     adapter: str
     real_coverage: str
@@ -43,6 +49,7 @@ class ModuleRunResult:
         return {
             "module": self.module,
             "status": self.status,
+            "coverage_status": self.coverage_status,
             "provider": self.provider,
             "adapter": self.adapter,
             "real_coverage": self.real_coverage,
@@ -89,6 +96,7 @@ class LiveAnalysisOrchestrator:
         modules["technical"] = ModuleRunResult(
             module="Technical",
             status="ok",
+            coverage_status="REAL",
             provider=bar_fetch.provider,
             adapter=self.market_adapter.name,
             real_coverage="real OHLCV bars / timeframe / lookback",
@@ -99,6 +107,7 @@ class LiveAnalysisOrchestrator:
         modules["chan"] = ModuleRunResult(
             module="Chan",
             status="ok",
+            coverage_status="REAL",
             provider=bar_fetch.provider,
             adapter=self.market_adapter.name,
             real_coverage="real K-line sequence from OHLCV bars",
@@ -109,6 +118,7 @@ class LiveAnalysisOrchestrator:
         modules["orderflow"] = ModuleRunResult(
             module="OrderFlow",
             status="ok",
+            coverage_status="PROXY",
             provider=intraday_fetch.provider,
             adapter=self.market_adapter.name,
             real_coverage="real intraday market bars driving market-approx orderflow",
@@ -129,6 +139,7 @@ class LiveAnalysisOrchestrator:
         modules["sentiment"] = ModuleRunResult(
             module="Sentiment",
             status="ok",
+            coverage_status="PROXY",
             provider=news_items.provider,
             adapter=self.news_adapter.name,
             real_coverage="real symbol news inputs with real market bars as auxiliary context",
@@ -156,6 +167,7 @@ class LiveAnalysisOrchestrator:
         modules["macro"] = ModuleRunResult(
             module="Macro",
             status="ok",
+            coverage_status="PROXY",
             provider=macro_payload.provider,
             adapter=self.macro_adapter.name,
             real_coverage="real FRED macro indicators plus real Yahoo macro news converted to MacroEvent stream",
@@ -188,6 +200,7 @@ class LiveAnalysisOrchestrator:
             modules["fundamental"] = ModuleRunResult(
                 module="Fundamental",
                 status="ok",
+                coverage_status="PROXY" if snapshot_result.placeholder_fields else "REAL",
                 provider=fundamentals_raw.provider,
                 adapter=self.fundamental_adapter.name,
                 real_coverage="real Yahoo Finance fundamentals snapshot",
@@ -199,6 +212,7 @@ class LiveAnalysisOrchestrator:
             modules["fundamental"] = ModuleRunResult(
                 module="Fundamental",
                 status="skipped",
+                coverage_status="PLACEHOLDER",
                 provider="n/a",
                 adapter="CommodityModeSkip",
                 real_coverage="not applicable for commodity/index mode",
@@ -286,11 +300,6 @@ class LiveAnalysisOrchestrator:
         )
 
         signal_snapshots = self._build_signal_snapshots(signals, modules)
-        decision_record = DecisionAuditor().ingest(
-            self._decision_with_signals(decision, signal_snapshots),
-            entry_price=last_bar.close,
-        )
-        DecisionRegistry().append(decision_record)
         risk_audit = RiskAuditor().ingest(
             plan,
             regime=(signals["technical"].regime.value if hasattr(signals["technical"].regime, "value") else str(signals["technical"].regime)),
@@ -298,9 +307,50 @@ class LiveAnalysisOrchestrator:
         )
         RiskAuditRegistry().append(risk_audit)
 
+        execution_result = self._run_execution(plan)
+        execution_record = ExecutionAuditor().ingest(
+            fills=self._fills_to_audit_payload(execution_result.fills),
+            plan_id=plan.execution_plan.plan_id if plan.execution_plan else plan.plan_id,
+            symbol=symbol,
+            decision_id=decision.decision_id,
+            order_type=(plan.execution_plan.algorithm.value if plan.execution_plan else "MARKET"),
+            algorithm=(plan.execution_plan.algorithm.value if plan.execution_plan else "MARKET"),
+            evaluator_pre_result={
+                "arrival_price": last_bar.close,
+                "estimated_slippage_bps": plan.execution_plan.estimated_slippage_bps if plan.execution_plan else 0.0,
+                "estimated_impact_bps": plan.execution_plan.estimated_impact_bps if plan.execution_plan else 0.0,
+                "estimated_fill_rate": 1.0,
+            },
+            evaluator_post_result={
+                "execution_quality_score": 1.0 if execution_result.report.is_complete else 0.5,
+                "quality_rating": "GOOD" if execution_result.report.is_complete else "FAIR",
+                "realized_impact_bps": float(execution_result.report.metadata.get("slippage_bps", 0.0)),
+            },
+            position_plan_id=plan.plan_id,
+            execution_start=analysis["end"],
+            execution_end=datetime.now(UTC),
+        )
+        ExecutionRegistry().append(execution_record)
+
+        audited_decision = self._decision_with_signals(decision, signal_snapshots)
+        audited_decision.execution_record_id = execution_record.audit_id
+        decision_record = DecisionAuditor().ingest(
+            audited_decision,
+            realized_pnl_pct=self._estimate_realized_pnl_pct(
+                plan=plan,
+                execution_record=execution_record,
+                mark_price=last_bar.close,
+            ),
+            signal_age_hours=1.0,
+            holding_period_hours=1.0,
+            entry_price=execution_record.avg_execution_price or last_bar.close,
+            exit_price=last_bar.close,
+        )
+        DecisionRegistry().append(decision_record)
+
         feedbacks = FeedbackEngine().scan(
             decision_records=[decision_record],
-            execution_records=[],
+            execution_records=[execution_record],
             risk_audits=[risk_audit],
         )
         if feedbacks:
@@ -312,6 +362,8 @@ class LiveAnalysisOrchestrator:
             "plan": plan,
             "decision_record": decision_record,
             "risk_audit": risk_audit,
+            "execution_result": execution_result,
+            "execution_record": execution_record,
             "feedbacks": feedbacks,
         }
 
@@ -367,3 +419,73 @@ class LiveAnalysisOrchestrator:
         data.setdefault("target_direction", data.get("bias", "no_trade"))
         data.setdefault("target_quantity", 0.0)
         return SimpleNamespace(**data)
+
+    def _run_execution(self, plan) -> Any:
+        import asyncio
+        intent = self._plan_to_execution_intent(plan)
+
+        async def _execute():
+            runtime = ExecutionRuntime(mode=FloorExecutionMode.SIMULATION, venue="SIMULATED")
+            await runtime.start()
+            try:
+                return await runtime.execute(intent)
+            finally:
+                await runtime.stop()
+
+        return asyncio.run(_execute())
+
+    def _plan_to_execution_intent(self, plan) -> ExecutionIntent:
+        execution_plan = plan.execution_plan
+        if execution_plan is None:
+            raise RuntimeError("Execution plan is required for actionable execution")
+        side = FloorSide.BUY if plan.exec_action == "BUY" else FloorSide.SELL
+        order_type_map = {
+            "MARKET": FloorOrderType.MARKET,
+            "LIMIT": FloorOrderType.LIMIT,
+            "STOP_MARKET": FloorOrderType.STOP_MARKET,
+            "STOP_LIMIT": FloorOrderType.STOP_LIMIT,
+            "TRAILING_STOP": FloorOrderType.TRAILING_STOP,
+        }
+        order_type = order_type_map.get(execution_plan.algorithm.value, FloorOrderType.MARKET)
+        return ExecutionIntent(
+            strategy_id="LIVE_PIPELINE",
+            decision_id=plan.decision_id,
+            symbol=plan.symbol,
+            venue="SIMULATED",
+            side=side,
+            order_type=order_type,
+            quantity=Decimal(str(round(plan.final_quantity, 6))),
+            price=None if execution_plan.limit_price is None else Decimal(str(round(execution_plan.limit_price, 6))),
+            stop_price=None if execution_plan.worst_price is None else Decimal(str(round(execution_plan.worst_price, 6))),
+            metadata={
+                "arrival_price": execution_plan.arrival_price or plan.current_price,
+                "estimated_slippage_bps": execution_plan.estimated_slippage_bps,
+                "estimated_impact_bps": execution_plan.estimated_impact_bps,
+                "reference_price": plan.current_price,
+                "fee_bps": max(execution_plan.estimated_impact_bps / 10, 1.0),
+            },
+        )
+
+    def _fills_to_audit_payload(self, fills: list[Any]) -> list[dict[str, Any]]:
+        payload: list[dict[str, Any]] = []
+        for fill in fills:
+            payload.append(
+                {
+                    "slice_id": getattr(fill, "record_id", ""),
+                    "filled_qty": float(fill.filled_qty),
+                    "fill_price": float(fill.fill_price),
+                    "fill_time": fill.filled_at,
+                    "slippage_bps": float(fill.metadata.get("simulated_slippage_bps", 0.0)),
+                    "is_leaving_qty": False,
+                    "quantity": float(fill.filled_qty),
+                }
+            )
+        return payload
+
+    def _estimate_realized_pnl_pct(self, *, plan, execution_record, mark_price: float) -> float:
+        entry_price = execution_record.avg_execution_price or execution_record.arrival_price or mark_price
+        if entry_price <= 0:
+            return 0.0
+        if plan.exec_action == "SELL":
+            return float((entry_price - mark_price) / entry_price)
+        return float((mark_price - entry_price) / entry_price)

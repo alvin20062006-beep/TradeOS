@@ -19,12 +19,12 @@ try {
 
 Write-Host "[CHECK] Verifying local runtime dependencies..." -ForegroundColor Yellow
 try {
-    python -c "import fastapi, uvicorn, streamlit, yfinance, numpy" | Out-Null
+    python -c "import fastapi, uvicorn, yfinance, numpy" | Out-Null
     Write-Host "[OK] Dependencies verified" -ForegroundColor Green
 } catch {
     Write-Host "[WARN] Missing packages detected. Installing requirements-local.txt ..." -ForegroundColor Yellow
     python -m pip install -r requirements-local.txt
 }
 
-Write-Host "[START] Launching API + Console ..." -ForegroundColor Yellow
+Write-Host "[START] Launching API + Web Console ..." -ForegroundColor Yellow
 python run.py start

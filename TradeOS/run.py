@@ -1,4 +1,4 @@
-"""Unified local launcher for API, Console, and live CLI checks."""
+"""Unified local launcher for API, web console, and CLI checks."""
 
 from __future__ import annotations
 
@@ -6,11 +6,14 @@ import argparse
 import subprocess
 import sys
 import time
+import webbrowser
 from pathlib import Path
 
 
 ROOT = Path(__file__).parent.resolve()
 PYTHON = sys.executable
+API_URL = "http://127.0.0.1:8000"
+CONSOLE_URL = f"{API_URL}/console/"
 
 
 def run_api() -> int:
@@ -65,31 +68,35 @@ def run_pipeline_live(symbol: str, timeframe: str, lookback: int, news_limit: in
 
 
 def run_start() -> int:
-    import multiprocessing
-
-    def _api() -> None:
-        raise SystemExit(run_api())
-
-    def _console() -> None:
+    api_proc = subprocess.Popen(
+        [
+            PYTHON,
+            "-m",
+            "uvicorn",
+            "apps.api.main:app",
+            "--host",
+            "127.0.0.1",
+            "--port",
+            "8000",
+        ],
+        cwd=ROOT,
+    )
+    try:
         time.sleep(4)
-        raise SystemExit(run_console())
-
-    api_proc = multiprocessing.Process(target=_api, name="tradeos-api")
-    console_proc = multiprocessing.Process(target=_console, name="tradeos-console")
-    api_proc.start()
-    console_proc.start()
-    api_proc.join()
-    console_proc.join()
-    return 0
+        webbrowser.open(CONSOLE_URL, new=2, autoraise=True)
+        return api_proc.wait()
+    except KeyboardInterrupt:
+        api_proc.terminate()
+        return 0
 
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="TradeOS unified local launcher")
     sub = parser.add_subparsers(dest="command")
 
-    sub.add_parser("start", help="Start API and Console together")
+    sub.add_parser("start", help="Start API and open the FastAPI web console")
     sub.add_parser("api", help="Start API only")
-    sub.add_parser("console", help="Start Console only")
+    sub.add_parser("console", help="Start console only")
     sub.add_parser("status", help="Check local API status via CLI")
 
     live = sub.add_parser("pipeline-live", help="Run real-data live pipeline via CLI")

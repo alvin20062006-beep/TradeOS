@@ -15,7 +15,7 @@ class TestSchemaExistence:
     
     def test_market_data_schemas_exist(self):
         """All market data schemas should exist."""
-        from ai_trading_tool.core.schemas import (
+        from core.schemas import (
             MarketBar,
             MarketTick,
             OrderBookSnapshot,
@@ -28,7 +28,7 @@ class TestSchemaExistence:
     
     def test_external_data_schemas_exist(self):
         """All external data schemas should exist."""
-        from ai_trading_tool.core.schemas import (
+        from core.schemas import (
             FundamentalsSnapshot,
             MacroEvent,
             NewsEvent,
@@ -41,7 +41,7 @@ class TestSchemaExistence:
     
     def test_signal_schemas_exist(self):
         """All signal schemas should exist."""
-        from ai_trading_tool.core.schemas import (
+        from core.schemas import (
             EngineSignal,
             ChanSignal,
             TechnicalSignal,
@@ -56,14 +56,14 @@ class TestSchemaExistence:
     
     def test_decision_schemas_exist(self):
         """Decision schemas should exist."""
-        from ai_trading_tool.core.schemas import (
+        from core.schemas import (
             ArbitrationDecision,
         )
         assert ArbitrationDecision is not None
     
     def test_execution_schemas_exist(self):
         """Execution schemas should exist."""
-        from ai_trading_tool.core.schemas import (
+        from core.schemas import (
             ExecutionIntent,
             OrderRecord,
             FillRecord,
@@ -74,7 +74,7 @@ class TestSchemaExistence:
     
     def test_risk_schemas_exist(self):
         """Risk schemas should exist."""
-        from ai_trading_tool.core.schemas import (
+        from core.schemas import (
             RiskEvent,
             RiskLimits,
         )
@@ -83,7 +83,7 @@ class TestSchemaExistence:
     
     def test_audit_schemas_exist(self):
         """Audit schemas should exist."""
-        from ai_trading_tool.core.schemas import (
+        from core.schemas import (
             AuditRecord,
         )
         assert AuditRecord is not None
@@ -94,7 +94,7 @@ class TestSchemaFields:
     
     def test_market_bar_required_fields(self):
         """MarketBar should have all required fields."""
-        from ai_trading_tool.core.schemas import MarketBar, TimeFrame
+        from core.schemas import MarketBar, TimeFrame
         
         bar = MarketBar(
             symbol="AAPL",
@@ -119,7 +119,7 @@ class TestSchemaFields:
     
     def test_engine_signal_required_fields(self):
         """EngineSignal should have all required fields."""
-        from ai_trading_tool.core.schemas import EngineSignal, Direction, Regime
+        from core.schemas import EngineSignal, Direction, Regime
         
         signal = EngineSignal(
             engine_name="test",
@@ -141,7 +141,7 @@ class TestSchemaFields:
     
     def test_arbitration_decision_required_fields(self):
         """ArbitrationDecision should have all required fields."""
-        from ai_trading_tool.core.schemas import ArbitrationDecision, Direction, Regime
+        from core.schemas import ArbitrationDecision, Direction, Regime
         
         decision = ArbitrationDecision(
             decision_id=str(uuid4()),
@@ -168,7 +168,7 @@ class TestSchemaFields:
     
     def test_order_record_required_fields(self):
         """OrderRecord should have all required fields."""
-        from ai_trading_tool.core.schemas import OrderRecord, Side, OrderType, OrderStatus
+        from core.schemas import OrderRecord, Side, OrderType, OrderStatus
         
         order = OrderRecord(
             order_id=str(uuid4()),
@@ -191,7 +191,7 @@ class TestSchemaFields:
     
     def test_risk_event_required_fields(self):
         """RiskEvent should have all required fields."""
-        from ai_trading_tool.core.schemas import RiskEvent, RiskEventType
+        from core.schemas import RiskEvent, RiskEventType
         
         event = RiskEvent(
             event_id=str(uuid4()),
@@ -215,30 +215,30 @@ class TestSchemaEnums:
     """Verify all enums exist and have expected values."""
     
     def test_direction_enum(self):
-        from ai_trading_tool.core.schemas import Direction
+        from core.schemas import Direction
         assert "long" in [d.value for d in Direction]
         assert "short" in [d.value for d in Direction]
         assert "flat" in [d.value for d in Direction]
     
     def test_side_enum(self):
-        from ai_trading_tool.core.schemas import Side
+        from core.schemas import Side
         assert "buy" in [s.value for s in Side]
         assert "sell" in [s.value for s in Side]
     
     def test_order_type_enum(self):
-        from ai_trading_tool.core.schemas import OrderType
+        from core.schemas import OrderType
         expected = ["market", "limit", "stop", "stop_limit", "twap", "vwap", "pov", "iceberg", "adaptive"]
         for ot in expected:
             assert ot in [o.value for o in OrderType]
     
     def test_regime_enum(self):
-        from ai_trading_tool.core.schemas import Regime
+        from core.schemas import Regime
         expected = ["trending_up", "trending_down", "ranging", "volatile", "unknown"]
         for r in expected:
             assert r in [reg.value for reg in Regime]
     
     def test_timeframe_enum(self):
-        from ai_trading_tool.core.schemas import TimeFrame
+        from core.schemas import TimeFrame
         expected = ["1s", "1m", "5m", "15m", "30m", "1h", "4h", "1d", "1w", "1M"]
         for tf in expected:
             assert tf in [t.value for t in TimeFrame]
@@ -248,20 +248,20 @@ class TestSchemaValidation:
     """Test schema validation rules."""
     
     def test_direction_validation(self):
-        from ai_trading_tool.core.schemas import Direction
+        from core.schemas import Direction
         # Should accept valid values
         assert Direction("long") == Direction.LONG
         assert Direction("short") == Direction.SHORT
         assert Direction("flat") == Direction.FLAT
     
     def test_timeframe_validation(self):
-        from ai_trading_tool.core.schemas import TimeFrame
+        from core.schemas import TimeFrame
         assert TimeFrame("5m") == TimeFrame.M5
         assert TimeFrame("1h") == TimeFrame.H1
         assert TimeFrame("1d") == TimeFrame.D1
     
     def test_confidence_bounds(self):
-        from ai_trading_tool.core.schemas import EngineSignal, Direction, Regime
+        from core.schemas import EngineSignal, Direction, Regime
         from pydantic import ValidationError
         
         # Should accept 0-1 range
@@ -327,14 +327,14 @@ class TestSchemaCompleteness:
             "AuditRecord",
         ]
         
-        from ai_trading_tool.core import schemas as schemas_module
+        from core import schemas as schemas_module
         
         for schema_name in required_schemas:
             assert hasattr(schemas_module, schema_name), f"Missing schema: {schema_name}"
     
     def test_no_adhoc_dict_pattern(self):
         """Verify that EngineSignal properly captures all signal data."""
-        from ai_trading_tool.core.schemas import EngineSignal, Direction, Regime
+        from core.schemas import EngineSignal, Direction, Regime
         
         # This test ensures we're using schemas, not ad-hoc dicts
         signal = EngineSignal(
@@ -351,3 +351,4 @@ class TestSchemaCompleteness:
         # Should have typed fields, not just raw dict
         assert isinstance(signal.module_scores, dict)
         assert signal.module_scores["fractal"] == 0.9
+

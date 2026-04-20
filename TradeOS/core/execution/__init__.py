@@ -1,8 +1,8 @@
 """
-Execution Module - 执行层统一导出
+Execution Module - 鎵ц灞傜粺涓€瀵煎嚭
 """
 
-from ai_trading_tool.core.execution.enums import (
+from core.execution.enums import (
     Side,
     OrderType,
     TimeInForce,
@@ -14,17 +14,18 @@ from ai_trading_tool.core.execution.enums import (
     RiskSeverity,
 )
 
-from ai_trading_tool.core.execution.models import (
+from core.execution.models import (
     StatusTransition,
     ExecutionRiskFlag,
     ExecutionIntent,
+    ExecutionResult,
     ExecutionReport,
     FillRecord,
     OrderRecord,
     PositionState,
 )
 
-from ai_trading_tool.core.execution.sinks import (
+from core.execution.sinks import (
     ExecutionEventSink,
     MemoryEventSink,
     StubEventSink,
@@ -32,11 +33,14 @@ from ai_trading_tool.core.execution.sinks import (
     DatabaseEventSink,
 )
 
-from ai_trading_tool.core.execution.base import (
+from core.execution.base import (
     ExecutionEngine,
     ExecutionRouter,
     ExecutionConfig,
 )
+from core.execution.router import NautilusRouter, SimulationRouter, build_default_router
+from core.execution.runtime import ExecutionRuntime
+from core.execution.simulation import SimulationExecutionEngine
 
 __all__ = [
     # Enums
@@ -53,6 +57,7 @@ __all__ = [
     "StatusTransition",
     "ExecutionRiskFlag",
     "ExecutionIntent",
+    "ExecutionResult",
     "ExecutionReport",
     "FillRecord",
     "OrderRecord",
@@ -67,4 +72,10 @@ __all__ = [
     "ExecutionEngine",
     "ExecutionRouter",
     "ExecutionConfig",
+    "SimulationExecutionEngine",
+    "SimulationRouter",
+    "NautilusRouter",
+    "build_default_router",
+    "ExecutionRuntime",
 ]
+

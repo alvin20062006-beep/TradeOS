@@ -14,12 +14,12 @@ from typing import Optional
 
 import pandas as pd
 
-from ai_trading_tool.core.data.base import (
+from core.data.base import (
     DataProvider,
     DataDomain,
     MarketDataProvider,
 )
-from ai_trading_tool.core.schemas import (
+from core.schemas import (
     MarketBar,
     TimeFrame,
 )
@@ -85,9 +85,9 @@ class CSVProvider(MarketDataProvider):
         """Check if provider is connected."""
         return self._connected
     
-    # ─────────────────────────────────────────────────────────
+    # 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
     # MARKET DATA
-    # ─────────────────────────────────────────────────────────
+    # 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
     
     async def get_bars(
         self,
@@ -259,3 +259,4 @@ class CSVProvider(MarketDataProvider):
 
 
 __all__ = ["CSVProvider"]
+

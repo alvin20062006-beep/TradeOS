@@ -12,7 +12,15 @@ class RiskAuditRegistry:
     """Persist and query RiskAudit snapshots as append-only JSONL."""
 
     def __init__(self, base_path: str | None = None) -> None:
-        base = Path(base_path) if base_path else Path.home() / ".ai-trading-tool" / "audit" / "risk_registry"
+        if base_path:
+            base = Path(base_path)
+        else:
+            try:
+                from infra.config.settings import get_settings
+
+                base = get_settings().app_data_dir / "audit" / "risk_registry"
+            except Exception:
+                base = Path(__file__).resolve().parents[3] / ".runtime" / "audit" / "risk_registry"
         self._base = base
         self._base.mkdir(parents=True, exist_ok=True)
 

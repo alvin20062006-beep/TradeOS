@@ -486,59 +486,90 @@ class MacroSignal(BaseModel):
 # ARBITRATION SCHEMA
 # ─────────────────────────────────────────────────────────────
 
+class DecisionRationale(BaseModel):
+    """Explainability snapshot for one signal in the arbitration chain."""
+
+    signal_name: str = Field(..., description="Signal source name")
+    direction: Direction = Field(..., description="Signal direction")
+    confidence: float = Field(..., ge=0.0, le=1.0, description="Raw confidence")
+    weight: float = Field(..., ge=0.0, description="Applied weight")
+    contribution: float = Field(..., description="Weighted contribution")
+    rule_adjustments: list[str] = Field(default_factory=list)
+
+
+class ConflictRecord(BaseModel):
+    """Conflict-resolution snapshot for arbitration."""
+
+    signal_a: str = Field(..., description="Conflicting signal A")
+    signal_b: str = Field(..., description="Conflicting signal B")
+    direction_a: Direction = Field(..., description="Direction for signal A")
+    direction_b: Direction = Field(..., description="Direction for signal B")
+    resolution: str = Field(..., description="How the conflict was resolved")
+    rule_applied: str = Field(..., description="Rule used to resolve the conflict")
+
+
 class ArbitrationDecision(BaseModel):
-    """
-    Final trading decision from arbitration layer.
-    
-    This is the unified output that feeds into execution.
-    """
+    """Unified arbitration contract used by Arbitration, Risk, Audit, and tests."""
+
     decision_id: str = Field(..., description="Unique decision ID (UUID)")
     timestamp: datetime = Field(..., description="Decision timestamp (UTC)")
     symbol: str = Field(..., description="Trading symbol")
-    
-    # Core decision
-    direction: Direction = Field(...)
+
+    # Phase 6 core output
+    bias: str = Field(
+        "no_trade",
+        description="no_trade/long_bias/short_bias/hold_bias/reduce_risk/exit_bias",
+    )
     confidence: float = Field(..., ge=0, le=1)
-    regime: Regime = Field(...)
-    
-    # Permission gates
-    entry_permission: bool = Field(True, description="Is entry allowed?")
-    no_trade_reason: Optional[str] = Field(
-        None, description="If no_trade, why?"
-    )
-    
-    # Position sizing
-    max_position_pct: float = Field(
-        0.1, ge=0, le=1, description="Max position as % of portfolio"
-    )
+    direction: Direction = Field(Direction.FLAT, description="Target direction")
+    regime: Regime = Field(Regime.UNKNOWN, description="Detected regime")
+
+    # Compatibility gates
+    entry_permission: bool = Field(True, description="Whether entry is allowed")
+    no_trade_reason: Optional[str] = Field(None, description="Why trade is blocked")
+    max_position_pct: float = Field(0.1, ge=0, le=1)
     suggested_quantity: Optional[float] = Field(None, gt=0)
-    
-    # Execution
+
+    # Execution hints
     execution_style: OrderType = Field(OrderType.MARKET)
     limit_price: Optional[float] = Field(None, gt=0)
     stop_price: Optional[float] = Field(None, gt=0)
-    
-    # Stop/Take
-    stop_logic: dict = Field(
-        default_factory=dict, description="Stop loss configuration"
-    )
+    stop_logic: dict = Field(default_factory=dict)
     take_profit: Optional[float] = Field(None, gt=0)
-    
-    # Signal aggregation
-    engine_signals: dict[str, float] = Field(
-        default_factory=dict, description="{engine_name: confidence}"
-    )
-    consensus_score: float = Field(
-        0.5, ge=0, le=1, description="Agreement across engines"
-    )
-    
-    # Rationale
+
+    # Legacy/global aggregation fields
+    engine_signals: dict[str, float] = Field(default_factory=dict)
+    consensus_score: float = Field(0.5, ge=0, le=1)
     reasoning: str = Field("", description="Human-readable rationale")
-    key_factors: list[str] = Field(default_factory=list, description="Top factors")
-    
-    # Metadata
+    key_factors: list[str] = Field(default_factory=list)
+
+    # Phase 6 explainability fields
+    long_score: float = Field(0.0)
+    short_score: float = Field(0.0)
+    neutrality_score: float = Field(0.0)
+    rationale: list[DecisionRationale] = Field(default_factory=list)
+    conflicts: list[ConflictRecord] = Field(default_factory=list)
+    fundamental_reference: Optional[str] = Field(None)
+    fundamental_veto_triggered: bool = Field(False)
+    macro_regime: Optional[str] = Field(None)
+    risk_adjustment: float = Field(1.0, ge=0.0, le=1.0)
+    rules_applied: list[str] = Field(default_factory=list)
+    signal_count: int = Field(0, ge=0)
+    arbitration_latency_ms: float = Field(0.0, ge=0.0)
+
+    # Audit bridge fields
+    target_direction: Optional[str] = Field(None, description="Audit-oriented target direction")
+    target_quantity: float = Field(0.0, ge=0)
+    source_signals: list[dict] = Field(default_factory=list)
+    signals: list[dict] = Field(default_factory=list)
+
     version: str = Field("1.0.0", description="Decision schema version")
     metadata: dict = Field(default_factory=dict)
+
+    @property
+    def no_trade_flag(self) -> bool:
+        """Backward-compatible alias expected by older contract tests."""
+        return self.bias == "no_trade" or not self.entry_permission
 
 
 # ─────────────────────────────────────────────────────────────

@@ -10,10 +10,10 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta
 from typing import Optional
 
-from ai_trading_tool.core.data.base import DataProvider
-from ai_trading_tool.core.data.store import DataStore
-from ai_trading_tool.core.data.validator import DataValidator
-from ai_trading_tool.core.schemas import TimeFrame
+from core.data.base import DataProvider
+from core.data.store import DataStore
+from core.data.validator import DataValidator
+from core.schemas import TimeFrame
 
 logger = logging.getLogger(__name__)
 
@@ -245,3 +245,4 @@ class BackfillManager:
             "symbols": self.store.list_symbols(),
             "provider": self.provider.name,
         }
+

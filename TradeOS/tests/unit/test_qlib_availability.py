@@ -84,7 +84,7 @@ class TestAvailability:
         assert result is not None
     
     def test_check_qlib_tier1_core_modules_present(self):
-        """A1: Tier 1 core modules must be in available_modules if qlib is installed."""
+        """A1: Tier 1 module detection should match the current environment."""
         import sys
         sys.path.insert(0, "C:/Users/hutia/.qclaw/workspace/ai-trading-tool")
         from core.research.qlib.availability import check_qlib
@@ -93,9 +93,11 @@ class TestAvailability:
         tier1_core = {"qlib.data.D", "qlib.workflow.R", "qlib.model.base"}
         available = set(result["available_modules"])
         
-        # At least some Tier 1 modules should be available
         found = tier1_core & available
-        assert len(found) >= 1, f"Expected at least one of {tier1_core} to be available, got: {available}"
+        if result["tier"] >= 1:
+            assert len(found) >= 1, f"Expected at least one of {tier1_core} to be available, got: {available}"
+        else:
+            assert len(found) == 0
     
     def test_is_qlib_available_true_when_qlib_installed(self):
         """A1: is_qlib_available() returns True when qlib is installed."""

@@ -17,7 +17,7 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import Optional, Any
 
-from ai_trading_tool.core.schemas import (
+from core.schemas import (
     MarketBar,
     MarketTick,
     OrderBookSnapshot,
@@ -761,3 +761,4 @@ __all__ = [
     "EventValidator",
     "DataValidator",
 ]
+

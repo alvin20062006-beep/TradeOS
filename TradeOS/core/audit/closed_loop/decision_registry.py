@@ -12,7 +12,15 @@ class DecisionRegistry:
     """Persist and query DecisionRecord snapshots as append-only JSONL."""
 
     def __init__(self, base_path: str | None = None) -> None:
-        base = Path(base_path) if base_path else Path.home() / ".ai-trading-tool" / "audit" / "decision_registry"
+        if base_path:
+            base = Path(base_path)
+        else:
+            try:
+                from infra.config.settings import get_settings
+
+                base = get_settings().app_data_dir / "audit" / "decision_registry"
+            except Exception:
+                base = Path(__file__).resolve().parents[3] / ".runtime" / "audit" / "decision_registry"
         self._base = base
         self._base.mkdir(parents=True, exist_ok=True)
 
@@ -52,4 +60,3 @@ class DecisionRegistry:
             return datetime.strptime(path.stem, "%Y-%m-%d") >= since.replace(hour=0, minute=0, second=0, microsecond=0)
         except ValueError:
             return True
-

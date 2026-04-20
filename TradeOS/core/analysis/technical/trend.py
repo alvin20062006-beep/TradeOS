@@ -121,14 +121,26 @@ def adx(
         minus_dm_smooth[i] = minus_dm_smooth[i - 1] - minus_dm_smooth[i - 1] / period + minus_dm[i]
     
     # Directional Index
-    plus_di = np.where(atr > 0, 100 * plus_dm_smooth / atr, 0)
-    minus_di = np.where(atr > 0, 100 * minus_dm_smooth / atr, 0)
+    plus_di = np.divide(
+        100 * plus_dm_smooth,
+        atr,
+        out=np.zeros_like(plus_dm_smooth),
+        where=atr > 0,
+    )
+    minus_di = np.divide(
+        100 * minus_dm_smooth,
+        atr,
+        out=np.zeros_like(minus_dm_smooth),
+        where=atr > 0,
+    )
     
     # DX
-    dx = np.where(
-        (plus_di + minus_di) > 0,
-        100 * np.abs(plus_di - minus_di) / (plus_di + minus_di),
-        0,
+    di_sum = plus_di + minus_di
+    dx = np.divide(
+        100 * np.abs(plus_di - minus_di),
+        di_sum,
+        out=np.zeros_like(di_sum),
+        where=di_sum > 0,
     )
     
     # ADX (smoothed DX)

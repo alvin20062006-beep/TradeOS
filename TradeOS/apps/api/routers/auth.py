@@ -89,7 +89,7 @@ async def get_audit_trail(
     append-only 语义保证历史不可篡改。
     """
     auth = get_auth_service()
-    entries = auth._repo.query_audit(
+    entries = auth.query_audit(
         user_id=user_id,
         resource=resource,
         limit=limit,
@@ -130,7 +130,7 @@ async def list_users(
 ) -> UserListResponse:
     """列出所有活跃用户（只读）。"""
     auth = get_auth_service()
-    users = auth._repo.list_users()
+    users = auth.list_users()
 
     return UserListResponse(
         ok=True,
@@ -162,7 +162,7 @@ async def get_user(
 ) -> UserView:
     """查询单个用户信息（只读）。"""
     auth = get_auth_service()
-    user = auth._repo.get_user(user_id)
+    user = auth.get_user(user_id)
     if user is None:
         raise HTTPException(
             status_code=404,

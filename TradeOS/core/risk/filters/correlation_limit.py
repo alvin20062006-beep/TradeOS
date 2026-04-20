@@ -1,25 +1,12 @@
-"""CorrelationLimitFilter — max_correlation."""
+"""Correlation limit filter."""
+
+from __future__ import annotations
+
 from core.risk.filters.base import FilterResult, RiskFilter
 
 
 class CorrelationLimitFilter(RiskFilter):
-    """
-    占位过滤器（placeholder / no-op）。
-
-    当前始终返回 passed=True，mode="pass"，不执行真实相关性检查。
-
-    TODO (Phase 8+): 实现真实相关性限额检查：
-      1. 从 Position 获取新仓位的 sector 标签
-      2. 从 correlation_matrix 查询同 sector 的相关性
-      3. 超过阈值则 cap 或 veto
-    """
-    """
-    相关性限额过滤器。
-
-    检查新仓位的 symbol 相关性：
-    - 若已有同方向同板块仓位，相关性过高则警告
-    - 若有反向相关，现有仓位和新仓位方向相反（对冲）则放宽
-    """
+    """Reduce same-direction exposure when correlation breaches the threshold."""
 
     name = "max_correlation"
 
@@ -28,24 +15,72 @@ class CorrelationLimitFilter(RiskFilter):
         qty,
         direction_sign,
         risk_limits=None,
+        symbol: str | None = None,
         existing_position_symbols=None,
+        existing_directions=None,
         correlation_matrix=None,
+        correlation_value: float | None = None,
         **kwargs,
     ):
         if risk_limits is None:
-            return FilterResult(True, qty, True, "pass", "no risk_limits")
+            return FilterResult(True, qty, True, "pass", "no risk limits configured")
 
-        if (
-            existing_position_symbols is None
-            or not existing_position_symbols
-            or correlation_matrix is None
-        ):
+        max_corr = float(getattr(risk_limits, "max_correlation", 0.0) or 0.0)
+        if max_corr <= 0:
+            return FilterResult(True, qty, True, "pass", "max_correlation disabled")
+
+        resolved_corr = correlation_value
+        if resolved_corr is None and correlation_matrix and symbol and existing_position_symbols:
+            for existing_symbol in existing_position_symbols:
+                pair_value = correlation_matrix.get((symbol, existing_symbol))
+                if pair_value is None:
+                    pair_value = correlation_matrix.get((existing_symbol, symbol))
+                if pair_value is not None:
+                    resolved_corr = max(abs(float(pair_value)), abs(float(resolved_corr or 0.0)))
+
+        if resolved_corr is None:
             return FilterResult(True, qty, True, "pass", "no correlation data")
 
+        abs_corr = abs(float(resolved_corr))
+        if abs_corr <= max_corr:
+            return FilterResult(
+                True,
+                qty,
+                True,
+                "pass",
+                f"correlation {abs_corr:.3f} within threshold {max_corr:.3f}",
+            )
+
+        same_direction = True
+        if existing_directions:
+            same_direction = any(int(existing_dir) == int(direction_sign) for existing_dir in existing_directions if existing_dir in (-1, 1))
+
+        if not same_direction:
+            return FilterResult(
+                True,
+                qty,
+                True,
+                "pass",
+                f"correlation {abs_corr:.3f} breached but exposure offsets existing positions",
+            )
+
+        overflow_ratio = min((abs_corr - max_corr) / max(1.0 - max_corr, 1e-6), 1.0)
+        reduction_ratio = max(0.25, 1.0 - overflow_ratio)
+        adjusted_qty = round(float(qty) * reduction_ratio, 6)
+
+        if adjusted_qty <= 0:
+            return FilterResult(
+                False,
+                0.0,
+                False,
+                "veto",
+                f"correlation {abs_corr:.3f} exceeds threshold {max_corr:.3f}; vetoed",
+            )
+
         return FilterResult(
-            passed=True,
-            adjusted_qty=qty,
-            limit_check_passed=True,
-            mode="pass",
-            details="correlation check: placeholder (requires sector tagging)",
+            True,
+            adjusted_qty,
+            False,
+            "cap",
+            f"correlation {abs_corr:.3f} exceeds threshold {max_corr:.3f}; qty reduced to {adjusted_qty}",
         )

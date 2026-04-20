@@ -22,8 +22,14 @@ class AuthService:
     """
 
     def __init__(self, repo: Optional[AuthRepository] = None) -> None:
-        self._repo = repo or AuthRepository()
+        self._repo: Optional[AuthRepository] = repo
         self._auth_enabled: Optional[bool] = None  # 延迟加载
+
+    @property
+    def repo(self) -> AuthRepository:
+        if self._repo is None:
+            self._repo = AuthRepository()
+        return self._repo
 
     @property
     def auth_enabled(self) -> bool:
@@ -45,7 +51,7 @@ class AuthService:
                 role=OperatorRole.OPERATOR,
                 description="Dev environment bypass",
             )
-        return self._repo.get_user(user_id)
+        return self.repo.get_user(user_id)
 
     def check_permission(self, user_id: str, action: str) -> tuple[bool, Optional[str]]:
         """
@@ -58,7 +64,7 @@ class AuthService:
             # dev 环境：全部放行
             return True, None
 
-        user = self._repo.get_user(user_id)
+        user = self.repo.get_user(user_id)
         if user is None:
             return False, "User not found or inactive"
 
@@ -98,7 +104,7 @@ class AuthService:
         try:
             result = kwargs.pop("result", "accepted")
             note = kwargs.pop("note", None)
-            self._repo.log_audit(
+            self.repo.log_audit(
                 user_id=user_id,
                 action=action,
                 resource=resource,
@@ -109,3 +115,9 @@ class AuthService:
         except Exception as e:
             # 审计日志失败不阻断主流程
             logger.warning("Audit log failed: %s", e)
+
+    def list_users(self) -> list[User]:
+        return self.repo.list_users()
+
+    def query_audit(self, **kwargs):
+        return self.repo.query_audit(**kwargs)

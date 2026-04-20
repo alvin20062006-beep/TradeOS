@@ -7,7 +7,7 @@ All schemas are re-exported from core.schemas for consistency.
 
 from __future__ import annotations
 
-from ai_trading_tool.core.schemas import (
+from core.schemas import (
     MarketBar,
     MarketTick,
     OrderBookSnapshot,
@@ -74,3 +74,4 @@ __all__ = [
     "get_schema_type",
     "list_schema_types",
 ]
+
