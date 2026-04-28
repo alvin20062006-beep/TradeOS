@@ -38,6 +38,17 @@ python -m apps.run_console
 
 `console` and `apps.run_console` are development/browser fallbacks for the FastAPI `/console/` surface.
 
+## Entry Matrix
+
+| Entry Type | Command / Path | Contract |
+|---|---|---|
+| Product entry | `python run.py start` | Default end-user path |
+| Desktop smoke | `python run.py desktop-smoke` | Backend startup/shutdown validation |
+| Developer API | `python run.py api` | FastAPI only |
+| Developer browser console | `python run.py console` | Development fallback |
+| Legacy fallback | `apps/console/` | Legacy only |
+| Advanced diagnostics | `/console/?view=diagnostics` | Advanced API and troubleshooting |
+
 ## Legacy
 
 `apps/console/` is the old Streamlit implementation. It is retained as fallback only and must not be documented as the default console.
@@ -49,4 +60,3 @@ python -m pytest --collect-only -q
 python -m pytest -m release -q
 python run.py desktop-smoke
 ```
-

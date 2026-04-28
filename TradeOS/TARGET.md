@@ -1,4 +1,4 @@
-# AI Trading Tool - Target
+# TradeOS - Target
 
 ## Vision
 

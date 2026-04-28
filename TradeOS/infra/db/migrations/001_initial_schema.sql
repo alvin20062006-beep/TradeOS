@@ -1,4 +1,4 @@
--- AI Trading Tool - Initial Database Schema
+-- TradeOS - Initial Database Schema
 -- PostgreSQL compatible (SQLite for dev, PostgreSQL for prod)
 -- Migration: 001_initial_schema
 

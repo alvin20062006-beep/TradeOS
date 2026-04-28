@@ -143,6 +143,13 @@ class ReplayReader(ABC, Generic[T]):
             
             if file_path.exists():
                 df = pd.read_parquet(file_path)
+
+                if "timestamp" not in df.columns and (
+                    df.index.name == "timestamp" or isinstance(df.index, pd.DatetimeIndex)
+                ):
+                    df = df.reset_index()
+                    if df.columns[0] != "timestamp":
+                        df = df.rename(columns={df.columns[0]: "timestamp"})
                 
                 # Filter by timestamp
                 if "timestamp" in df.columns:

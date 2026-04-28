@@ -22,9 +22,9 @@ from apps.api.routers import (
 )
 
 app = FastAPI(
-    title="AI Trading Tool",
+    title="TradeOS",
     version="1.0.0",
-    description="Phase 1-10 core + productization-layer API",
+    description="TradeOS local product API backed by the Phase 1-10 Python/FastAPI core.",
 )
 
 app.add_middleware(
@@ -53,9 +53,12 @@ app.mount("/console", StaticFiles(directory=WEB_CONSOLE_DIR, html=True), name="w
 @app.get("/")
 async def root():
     return {
-        "message": "AI Trading Tool API",
+        "message": "TradeOS API",
         "version": "1.0.0",
         "docs": "/docs",
         "status": "/system/status",
         "console": "/console/",
+        "product_entry": "TradeOS desktop shell",
+        "advanced_surface": "Diagnostics / Advanced API",
+        "legacy_fallback": "apps/console/",
     }

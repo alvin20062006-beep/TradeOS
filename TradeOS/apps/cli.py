@@ -1,5 +1,5 @@
 """
-apps/cli.py — 命令行入口（轻量 CLI，不重写任何 Phase 逻辑）
+apps/cli.py — TradeOS 命令行入口（轻量 CLI，不重写任何 Phase 逻辑）
 
 用法:
     python -m apps.cli --help
@@ -88,7 +88,7 @@ def _ts() -> str:
 
 @click.group()
 def cli():
-    """AI Trading Tool — 命令行工具（suggestion-only）"""
+    """TradeOS CLI — 命令行工具（suggestion-only）"""
     pass
 
 
@@ -533,5 +533,9 @@ def feedback_result(task_id, poll):
         sys.exit(1)
 
 
-if __name__ == "__main__":
+def main() -> None:
     cli()
+
+
+if __name__ == "__main__":
+    main()

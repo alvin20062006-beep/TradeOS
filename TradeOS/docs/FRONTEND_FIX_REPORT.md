@@ -4,6 +4,14 @@
 
 TradeOS now uses the FastAPI-mounted web console at `/console/`, opened by the desktop shell. The normal user does not need to see localhost, API Base, or browser tabs.
 
+## Product UX Contract
+
+- Product entry: TradeOS desktop shell.
+- Default console: `/console/`.
+- Advanced engineering surface: Diagnostics / Advanced API.
+- Legacy surface: `apps/console/` fallback only.
+- Product-facing pages use a unified bilingual style, shared typography scale, shared spacing scale, and one consistent status/toast language model.
+
 ## Completed Console Pages
 
 - Dashboard
@@ -25,4 +33,3 @@ TradeOS now uses the FastAPI-mounted web console at `/console/`, opened by the d
 ## Legacy Status
 
 The old Streamlit console under `apps/console/` is legacy fallback only and is not the default product console.
-

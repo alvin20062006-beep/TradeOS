@@ -1,4 +1,4 @@
-# AI Trading Tool - Makefile
+# TradeOS - Makefile
 
 .PHONY: help install install-dev test test-unit test-integration test-contract lint format clean docs db-migrate db-reset
 
@@ -7,7 +7,7 @@
 # ─────────────────────────────────────────────────────────────
 
 help:
-	@echo "AI Trading Tool - Available Commands"
+	@echo "TradeOS - Available Commands"
 	@echo ""
 	@echo "  make install          Install package with dependencies"
 	@echo "  make install-dev      Install with development dependencies"

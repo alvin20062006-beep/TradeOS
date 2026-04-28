@@ -33,6 +33,17 @@ python -m apps.run_console   # legacy browser launcher for /console/
 
 These are development tools, not the default product flow.
 
+## Entry Matrix
+
+| Entry Type | Command / Path | Status |
+|---|---|---|
+| Product entry | `python run.py start` | Default |
+| Developer API | `python run.py api` | Supported |
+| Developer browser console | `python run.py console` | Supported |
+| Legacy Streamlit fallback | `apps/console/` | Legacy only |
+| Advanced API page | `/console/?view=diagnostics` | Advanced only |
+| Optional research extras | `pip install -e ".[research]"` | Optional |
+
 ## Runtime Dependencies
 
 Install local runtime dependencies with:
@@ -51,9 +62,9 @@ Required product dependencies include FastAPI, uvicorn, pywebview, pandas, numpy
 
 ```powershell
 python -m pytest --collect-only -q
+python -m pytest -q
 python -m pytest -m release -q
 python run.py desktop-smoke
 ```
 
-Full pytest may include optional research/legacy failures unless those dependencies and compatibility fixes are installed. The release gate is the product shipping boundary.
-
+Default full pytest must stay green. Optional research tests may skip when their extras are not installed, but they must not fail collection or turn the suite red.

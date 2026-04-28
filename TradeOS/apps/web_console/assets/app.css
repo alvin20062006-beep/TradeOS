@@ -1,4 +1,6 @@
 :root {
+  --font-ui: "Inter", "Segoe UI", "PingFang SC", "Microsoft YaHei", "Noto Sans SC", sans-serif;
+  --font-mono: "Cascadia Code", "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
   --bg: #09131f;
   --bg-soft: #122033;
   --surface: rgba(12, 27, 44, 0.82);
@@ -16,7 +18,21 @@
   --radius-lg: 22px;
   --radius-md: 16px;
   --radius-sm: 12px;
-  --font-sans: "Segoe UI Variable Display", "Bahnschrift", "Aptos", "Segoe UI", sans-serif;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-7: 32px;
+  --fs-xxs: 11px;
+  --fs-xs: 12px;
+  --fs-sm: 14px;
+  --fs-md: 16px;
+  --fs-lg: 18px;
+  --fs-xl: 22px;
+  --fs-2xl: 28px;
+  --font-sans: var(--font-ui);
 }
 
 * {
@@ -33,6 +49,9 @@ body {
     linear-gradient(180deg, #07111c 0%, #0b1725 42%, #0d1824 100%);
   color: var(--text);
   font-family: var(--font-sans);
+  font-size: var(--fs-md);
+  line-height: 1.55;
+  text-rendering: optimizeLegibility;
 }
 
 body::before {
@@ -49,7 +68,8 @@ body::before {
 
 button,
 input,
-select {
+select,
+textarea {
   font: inherit;
 }
 
@@ -132,7 +152,7 @@ button {
   display: inline-block;
   text-transform: uppercase;
   letter-spacing: 0.18em;
-  font-size: 11px;
+  font-size: var(--fs-xxs);
   color: var(--text-soft);
 }
 
@@ -157,6 +177,12 @@ button {
   line-height: 1.6;
 }
 
+.hero-copy p,
+.page-head p {
+  max-width: 72ch;
+  font-size: var(--fs-sm);
+}
+
 .hero-meta {
   display: grid;
   gap: 12px;
@@ -173,7 +199,7 @@ button {
 .hero-meta strong {
   display: block;
   margin-top: 6px;
-  font-size: 15px;
+  font-size: var(--fs-sm);
   line-height: 1.5;
 }
 
@@ -222,7 +248,7 @@ button {
   justify-content: space-between;
   gap: 16px;
   margin-bottom: 12px;
-  font-size: 14px;
+  font-size: var(--fs-sm);
   line-height: 1.55;
 }
 
@@ -277,7 +303,7 @@ button {
   gap: 6px;
   padding: 6px 10px;
   border-radius: 999px;
-  font-size: 12px;
+  font-size: var(--fs-xs);
 }
 
 .status-chip {
@@ -379,7 +405,7 @@ button {
 .link-button {
   min-height: 36px;
   padding: 8px 14px;
-  font-size: 14px;
+  font-size: var(--fs-sm);
 }
 
 .action-button.primary {
@@ -449,7 +475,7 @@ button {
 
 .helper-copy {
   max-width: 420px;
-  font-size: 13px;
+  font-size: var(--fs-sm);
 }
 
 .form-grid,
@@ -481,12 +507,13 @@ label {
 }
 
 label span {
-  font-size: 13px;
+  font-size: var(--fs-sm);
   color: var(--text-soft);
 }
 
 input,
-select {
+select,
+textarea {
   width: 100%;
   min-height: 46px;
   padding: 12px 14px;
@@ -494,6 +521,11 @@ select {
   border: 1px solid rgba(255, 255, 255, 0.12);
   background: rgba(2, 10, 18, 0.35);
   color: var(--text);
+}
+
+textarea {
+  min-height: 132px;
+  resize: vertical;
 }
 
 input:focus,
@@ -539,7 +571,7 @@ button:focus-visible {
 
 .subheading {
   margin-top: 0;
-  font-size: 16px;
+  font-size: var(--fs-md);
 }
 
 .module-head,
@@ -631,7 +663,7 @@ button:focus-visible {
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   text-align: left;
   vertical-align: top;
-  font-size: 14px;
+  font-size: var(--fs-sm);
 }
 
 .data-table th {
@@ -649,6 +681,7 @@ button:focus-visible {
   padding: 16px 18px;
   cursor: pointer;
   color: var(--text);
+  font-weight: 600;
 }
 
 .json-panel pre,
@@ -658,6 +691,8 @@ button:focus-visible {
   overflow: auto;
   background: rgba(0, 0, 0, 0.24);
   color: #d8f2ff;
+  font-family: var(--font-mono);
+  font-size: 13px;
   white-space: pre-wrap;
   word-break: break-word;
 }

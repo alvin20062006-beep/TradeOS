@@ -66,7 +66,7 @@ export const feedbackView = {
                   { label: "提交时间 Submitted", value: utils.formatDate(page.submitResult.submitted_at) },
                   { label: "消息 Message", value: page.submitResult.message || "n/a" },
                 ])
-              : `<div class="empty-state compact">请先提交任务。本页不会伪造“直接写入成功”。 / Submit a task first. This page never fakes direct write success.</div>`
+              : `<div class="empty-state compact">请先提交任务。本页通过真实任务流返回状态与结果。 / Submit a task first. This page reports status and results through the real task flow.</div>`
           }
         </article>
 

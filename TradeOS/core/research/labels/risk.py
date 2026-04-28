@@ -80,6 +80,7 @@ class MaxDrawdownLabelBuilder:
         def rolling_dd(group: pd.DataFrame) -> pd.DataFrame:
             group = group.sort_values("timestamp")
             prices = group[close_col]
+            symbol = group["symbol"].iloc[0] if "symbol" in group.columns else "UNKNOWN"
 
             # Rolling max drawdown
             max_dd_values = []
@@ -92,7 +93,7 @@ class MaxDrawdownLabelBuilder:
 
             return pd.DataFrame(
                 {
-                    "symbol": group["symbol"],
+                    "symbol": symbol,
                     "timestamp": group["timestamp"],
                     "label_value": max_dd_values,
                 }
@@ -141,6 +142,7 @@ class VolatilityPercentileLabelBuilder:
 
         def calc_vol_percentile(group: pd.DataFrame) -> pd.DataFrame:
             group = group.sort_values("timestamp")
+            symbol = group["symbol"].iloc[0] if "symbol" in group.columns else "UNKNOWN"
             returns = group[close_col].pct_change()
             vol = returns.rolling(self.vol_period).std() * np.sqrt(252)
 
@@ -151,7 +153,7 @@ class VolatilityPercentileLabelBuilder:
 
             return pd.DataFrame(
                 {
-                    "symbol": group["symbol"],
+                    "symbol": symbol,
                     "timestamp": group["timestamp"],
                     "label_value": vol_percentile,
                 }
@@ -207,6 +209,7 @@ class VaRBreachLabelBuilder:
 
         def calc_var_breach(group: pd.DataFrame) -> pd.DataFrame:
             group = group.sort_values("timestamp")
+            symbol = group["symbol"].iloc[0] if "symbol" in group.columns else "UNKNOWN"
             returns = group[close_col].pct_change()
 
             # Historical VaR
@@ -220,7 +223,7 @@ class VaRBreachLabelBuilder:
 
             return pd.DataFrame(
                 {
-                    "symbol": group["symbol"],
+                    "symbol": symbol,
                     "timestamp": group["timestamp"],
                     "label_value": breach,
                 }

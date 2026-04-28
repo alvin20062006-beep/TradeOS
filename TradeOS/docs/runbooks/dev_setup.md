@@ -1,6 +1,6 @@
 # Developer Setup Guide
 
-This guide walks you through setting up the AI Trading Tool development environment.
+This guide walks you through setting up the TradeOS development environment.
 
 ## Prerequisites
 
@@ -12,8 +12,8 @@ This guide walks you through setting up the AI Trading Tool development environm
 
 ```bash
 cd ~/projects
-git clone <repository-url> ai-trading-tool
-cd ai-trading-tool
+git clone <repository-url> TradeOS
+cd TradeOS
 ```
 
 ## Step 2: Create Virtual Environment
@@ -32,14 +32,15 @@ source venv/bin/activate
 ## Step 3: Install Dependencies
 
 ```bash
-# Basic installation
-pip install -e .
-
-# With development dependencies
+# Product runtime + local test stack
+pip install -r requirements-local.txt
 pip install -e ".[dev,test]"
 
-# With full dependencies (includes NautilusTrader, Qlib)
-pip install -e ".[full,dev,test]"
+# Optional research extras
+pip install -e ".[research]"
+
+# Optional execution extras
+pip install -e ".[execution]"
 ```
 
 ## Step 4: Configure Environment
@@ -89,8 +90,11 @@ make schema-check
 # Check config
 make config-check
 
-# Run tests
-make test-unit
+# Run all tests
+python -m pytest -q
+
+# Run release gate
+python -m pytest -m release -q
 ```
 
 ## Step 7: Install Pre-commit Hooks (Optional)
@@ -133,29 +137,29 @@ Create `.vscode/settings.json`:
 
 ```bash
 # Check CLI help
-ai-trading --help
+tradeos --help
 
-# Run analysis
-ai-trading analysis run --symbol AAPL
-
-# Run backtest
-ai-trading backtest run --config config/backtest.yaml
+# Status
+tradeos status
 ```
 
 ### API Server
 
 ```bash
 # Start API server
-python -m ai_trading_tool.apps.api
+python run.py api
 
 # API will be available at http://localhost:8000
 ```
 
-### Dashboard
+### Product Shell / Console
 
 ```bash
-# Start dashboard
-python -m ai_trading_tool.apps.dashboard
+# Start desktop shell
+python run.py start
+
+# Open console in browser for development fallback
+python run.py console
 ```
 
 ## Troubleshooting
@@ -195,7 +199,9 @@ TA-Lib requires manual installation on Windows:
 1. Download TA-Lib from https://www.lfd.uci.edu/~gohlke/pythonlibs/#ta-lib
 2. Install: `pip install TA-Lib‑0.4.28‑cp310‑cp310‑win_amd64.whl`
 
-### Qlib Installation
+### Optional Research Dependencies
+
+Research extras such as Qlib are optional. The default full pytest run must stay green even when these packages are absent, and research-only tests must skip cleanly.
 
 Qlib may require additional setup:
 

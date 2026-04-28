@@ -1,5 +1,5 @@
 """
-AI Trading Tool - Core Module
+TradeOS - Core Module
 
 Core trading platform components.
 """

@@ -11,6 +11,17 @@ Default product users should start TradeOS from the desktop shell and do not nee
 | Diagnostics / Advanced API | Advanced | Raw JSON templates, response viewer, curl copy, and request history. |
 | `apps/console/` | Legacy fallback | Old Streamlit console; not the default product entry. |
 
+## Entry Matrix
+
+| Entry Type | Command / Path | Audience |
+|---|---|---|
+| Product entry | `python run.py start` | End users |
+| API only | `python run.py api` | Developers |
+| Browser fallback | `python run.py console` | Developers |
+| Advanced diagnostics | `/console/?view=diagnostics` | Advanced users |
+| Legacy fallback | `apps/console/` | Legacy only |
+| Optional research extras | `pip install -e ".[research]"` | Research users |
+
 ## Core Endpoints
 
 | Method | Path | Purpose |
@@ -50,4 +61,3 @@ Default product users should start TradeOS from the desktop shell and do not nee
 ```
 
 The response includes Data Summary, Six Modules, Arbitration Decision, Risk Plan, Execution Simulation, Audit Records, and Feedback Suggestions. Module cards expose `coverage_status` so proxy and placeholder boundaries are visible to the frontend.
-

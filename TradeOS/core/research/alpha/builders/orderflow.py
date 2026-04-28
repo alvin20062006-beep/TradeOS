@@ -84,6 +84,7 @@ class VWAPDeviationBuilder(AlphaFactor):
 
         def calc(g: pd.DataFrame) -> pd.DataFrame:
             g = g.sort_values("timestamp")
+            symbol = g["symbol"].iloc[0] if "symbol" in g.columns else "UNKNOWN"
             # Typical price = (high + low + close) / 3
             tp = (g["high"] + g["low"] + g["close"]) / 3
             vwap = (tp * g["volume"]).rolling(self.vwap_period).sum() / g["volume"].rolling(
@@ -91,7 +92,7 @@ class VWAPDeviationBuilder(AlphaFactor):
             ).sum()
             return pd.DataFrame(
                 {
-                    "symbol": g["symbol"],
+                    "symbol": symbol,
                     "timestamp": g["timestamp"],
                     "raw_value": (g["close"] - vwap) / vwap,
                 }
@@ -139,13 +140,14 @@ class VWAPSlopeBuilder(AlphaFactor):
 
         def calc(g: pd.DataFrame) -> pd.DataFrame:
             g = g.sort_values("timestamp")
+            symbol = g["symbol"].iloc[0] if "symbol" in g.columns else "UNKNOWN"
             tp = (g["high"] + g["low"] + g["close"]) / 3
             vwap = (tp * g["volume"]).rolling(self.vwap_period).sum() / g["volume"].rolling(
                 self.vwap_period
             ).sum()
             return pd.DataFrame(
                 {
-                    "symbol": g["symbol"],
+                    "symbol": symbol,
                     "timestamp": g["timestamp"],
                     "raw_value": vwap.pct_change(self.slope_period),
                 }
@@ -190,10 +192,11 @@ class VolumeConcentrationBuilder(AlphaFactor):
 
         def calc(g: pd.DataFrame) -> pd.DataFrame:
             g = g.sort_values("timestamp")
+            symbol = g["symbol"].iloc[0] if "symbol" in g.columns else "UNKNOWN"
             vol_ma = g["volume"].rolling(self.ma_period).mean()
             return pd.DataFrame(
                 {
-                    "symbol": g["symbol"],
+                    "symbol": symbol,
                     "timestamp": g["timestamp"],
                     "raw_value": g["volume"] / vol_ma - 1,
                 }

@@ -1,5 +1,5 @@
 """
-Unified Logging System for AI Trading Tool
+Unified Logging System for TradeOS
 
 Provides structured logging with JSON output for production,
 text output for development, and per-module level control.

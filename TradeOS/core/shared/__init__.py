@@ -1,5 +1,5 @@
 """
-AI Trading Tool - Core Shared Module
+TradeOS - Core Shared Module
 
 Exports shared utilities for all modules.
 """

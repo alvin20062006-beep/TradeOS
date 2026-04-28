@@ -85,7 +85,7 @@ class RateDeltaBuilder(AlphaFactor):
             .apply(
                 lambda g: pd.DataFrame(
                     {
-                        "symbol": g["symbol"],
+                        "symbol": g["symbol"].iloc[0] if "symbol" in g.columns else "UNKNOWN",
                         "timestamp": g["timestamp"],
                         "raw_value": g["close"].pct_change(self.period),
                     }
@@ -131,11 +131,12 @@ class VolTrendBuilder(AlphaFactor):
 
         def calc(g: pd.DataFrame) -> pd.DataFrame:
             g = g.sort_values("timestamp")
+            symbol = g["symbol"].iloc[0] if "symbol" in g.columns else "UNKNOWN"
             vol_ma = g["volume"].rolling(self.ma_period).mean()
             price_ma = g["close"].rolling(self.ma_period).mean()
             return pd.DataFrame(
                 {
-                    "symbol": g["symbol"],
+                    "symbol": symbol,
                     "timestamp": g["timestamp"],
                     "raw_value": (vol_ma / price_ma - 1),
                 }
@@ -184,10 +185,11 @@ class YieldSpreadBuilder(AlphaFactor):
 
         def calc(g: pd.DataFrame) -> pd.DataFrame:
             g = g.sort_values("timestamp")
+            symbol = g["symbol"].iloc[0] if "symbol" in g.columns else "UNKNOWN"
             hl_spread = (g["high"] - g["low"]) / g["close"]
             return pd.DataFrame(
                 {
-                    "symbol": g["symbol"],
+                    "symbol": symbol,
                     "timestamp": g["timestamp"],
                     "raw_value": hl_spread.rolling(self.smooth_period).mean(),
                 }

@@ -127,8 +127,10 @@ class FactorSelector:
         if factors.empty or len(factors.columns) <= 1:
             return list(factors.columns)
 
-        corr = factors.corr()
-        np.fill_diagonal(corr.values, 0.0)
+        corr = factors.corr().copy()
+        corr_values = corr.to_numpy(copy=True)
+        np.fill_diagonal(corr_values, 0.0)
+        corr.iloc[:, :] = corr_values
 
         kept: list[str] = []
         dropped: set[str] = set()

@@ -1,8 +1,8 @@
-# AI Trading Tool - System Overview
+# TradeOS - System Overview
 
 ## Vision
 
-AI Trading Tool is an **AI-first quantitative trading platform** that separates concerns between intelligence (research + analysis + arbitration) and execution (NautilusTrader). It is designed to be called by AI agents (OpenClaw, Claude Code, etc.) rather than requiring human traders to operate it directly.
+TradeOS is an **AI-first quantitative trading platform** that separates concerns between intelligence (research + analysis + arbitration) and execution (NautilusTrader). It is designed to be called by AI agents (OpenClaw, Claude Code, etc.) rather than requiring human traders to operate it directly.
 
 ## Architecture Principles
 

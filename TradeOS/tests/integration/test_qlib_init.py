@@ -4,9 +4,15 @@ Integration tests for qlib init + D query pipeline.
 Tests the minimum qllab workflow:
     availability.check() -> config_builder.build() -> qlib.init() -> D.inst.query()
 """
+import importlib.util
+
 import pytest
 from pathlib import Path
 
+pytestmark = pytest.mark.skipif(
+    importlib.util.find_spec("qlib") is None,
+    reason="pyqlib not installed in this environment",
+)
 
 class TestQlibInit:
     """Integration tests for Qlib initialization pipeline."""

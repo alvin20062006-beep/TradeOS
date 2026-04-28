@@ -16,8 +16,9 @@ sys.path.insert(0, str(project_root))
 class FakeModel:
     """Pickle-friendly model fixture for research adapter tests."""
 
-    def __init__(self, predictions=None):
+    def __init__(self, predictions=None, coefficient=1.5):
         self.predictions = predictions
+        self.coefficient = coefficient
 
     def predict(self, features):
         if self.predictions is not None:

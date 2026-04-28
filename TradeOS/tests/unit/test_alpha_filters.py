@@ -58,7 +58,7 @@ def sample_fundamental_data():
     """Sample fundamental data."""
     return pd.DataFrame({
         "symbol": "TEST",
-        "timestamp": pd.date_range("2024-01-01", periods=8, freq="Q"),
+        "timestamp": pd.date_range("2024-01-01", periods=8, freq="QE"),
         "roe": [0.15, 0.12, 0.18, 0.14, 0.16, 0.13, 0.17, 0.15],
         "revenue": [100, 110, 105, 120, 125, 130, 128, 140],
         "operating_cf": [20, 22, 18, 25, 26, 28, 27, 30],

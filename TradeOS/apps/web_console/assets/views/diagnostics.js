@@ -103,21 +103,21 @@ export const diagnosticsView = {
     return `
       <section class="page-head">
         <div>
-          <span class="section-eyebrow">Advanced users only / 高级用户</span>
+          <span class="section-eyebrow">高级诊断 / Advanced diagnostics</span>
           <h2>Diagnostics / Advanced API</h2>
-          <p>This page exposes raw API templates, JSON requests, response bodies, request history, curl copy, and detailed errors. It is intentionally separate from the normal product workflow.</p>
+          <p>这里集中放置原始 API 模板、JSON 请求体、响应体、请求历史、curl 复制与错误详情。它刻意与普通产品工作流分离，用于调试、审计与高级排障。</p>
         </div>
         <div class="head-actions">
-          <span class="endpoint-pill">No fake success</span>
-          <span class="endpoint-pill">Real FastAPI only</span>
+          <span class="endpoint-pill">真实请求状态 / Real request status</span>
+          <span class="endpoint-pill">仅真实 FastAPI / Real FastAPI only</span>
         </div>
       </section>
 
       <section class="panel-card">
         <div class="panel-head">
           <div>
-            <span class="panel-kicker">Templates / 模板</span>
-            <h3>Choose API Template / 选择 API 模板</h3>
+            <span class="panel-kicker">模板 / Templates</span>
+            <h3>选择 API 模板 / Choose API Template</h3>
           </div>
         </div>
         <form data-diagnostics-form class="form-grid">
@@ -128,7 +128,7 @@ export const diagnosticsView = {
             </select>
           </label>
           <label>
-            <span>Method</span>
+            <span>请求方法 / Method</span>
             <select name="method">
               ${["GET", "POST"].map((method) => `<option value="${method}" ${page.method === method ? "selected" : ""}>${method}</option>`).join("")}
             </select>
@@ -138,13 +138,13 @@ export const diagnosticsView = {
             <input name="path" value="${utils.escapeHtml(page.path)}" />
           </label>
           <label class="full-span">
-            <span>JSON Body / JSON 请求体</span>
+            <span>JSON 请求体 / JSON Body</span>
             <textarea name="body" rows="10" placeholder='{"symbol":"AAPL"}'>${utils.escapeHtml(page.body)}</textarea>
           </label>
         </form>
         <div class="button-row">
-          <button type="button" class="action-button primary" data-send-api>Send Request / 发送</button>
-          <button type="button" class="action-button" data-copy-curl>Copy curl / 复制 curl</button>
+          <button type="button" class="action-button primary" data-send-api>发送请求 / Send Request</button>
+          <button type="button" class="action-button" data-copy-curl>复制 curl / Copy curl</button>
         </div>
       </section>
 
@@ -153,7 +153,7 @@ export const diagnosticsView = {
           <div class="panel-head">
             <div>
               <span class="panel-kicker">curl</span>
-              <h3>Generated curl / 生成命令</h3>
+              <h3>生成命令 / Generated curl</h3>
             </div>
           </div>
           <pre class="detail-pre">${utils.escapeHtml(curl)}</pre>
@@ -161,28 +161,28 @@ export const diagnosticsView = {
         <article class="panel-card">
           <div class="panel-head">
             <div>
-              <span class="panel-kicker">History / 历史</span>
-              <h3>Request History / 请求历史</h3>
+              <span class="panel-kicker">历史 / History</span>
+              <h3>请求历史 / Request History</h3>
             </div>
           </div>
           ${
             page.history.length
               ? utils.renderTable(
                   [
-                    { key: "time", label: "Time", render: (row) => utils.escapeHtml(utils.formatDate(row.time)) },
-                    { key: "method", label: "Method" },
-                    { key: "path", label: "Path" },
-                    { key: "status", label: "Status" },
+                    { key: "time", label: "时间 Time", render: (row) => utils.escapeHtml(utils.formatDate(row.time)) },
+                    { key: "method", label: "方法 Method" },
+                    { key: "path", label: "路径 Path" },
+                    { key: "status", label: "状态 Status" },
                   ],
                   page.history.slice(-8).reverse(),
                 )
-              : `<div class="empty-state compact">No requests sent yet.</div>`
+              : `<div class="empty-state compact">尚未发送请求。 / No requests sent yet.</div>`
           }
         </article>
       </section>
 
-      ${utils.renderJsonPanel("Response / 响应", page.response)}
-      ${utils.renderJsonPanel("Error Detail / 错误详情", page.error)}
+      ${utils.renderJsonPanel("响应 / Response", page.response)}
+      ${utils.renderJsonPanel("错误详情 / Error Detail", page.error)}
     `;
   },
   mount(ctx, page, root) {
@@ -212,9 +212,9 @@ export const diagnosticsView = {
       const curl = buildCurl(ctx.api.base, page.method, page.path, page.body);
       try {
         await navigator.clipboard.writeText(curl);
-        ctx.toast("curl copied / curl 已复制", "success");
+        ctx.toast("curl 已复制 / curl copied", "success");
       } catch {
-        ctx.toast("Clipboard unavailable / 剪贴板不可用", "error");
+        ctx.toast("剪贴板不可用 / Clipboard unavailable", "error");
       }
     });
 
@@ -249,8 +249,8 @@ export const diagnosticsView = {
       ctx.setLoading(false);
       ctx.setPageStatus(this.id, {
         tone: result.ok ? "success" : "error",
-        title: result.ok ? "Request completed" : "Request failed",
-        message: result.ok ? "The response is from the real API." : (result.error?.message || "API returned an error."),
+        title: result.ok ? "请求完成 / Request completed" : "请求失败 / Request failed",
+        message: result.ok ? "响应直接来自真实 API。 / The response came from the real API." : (result.error?.message || "API 返回错误。 / API returned an error."),
         detail: result.url,
       });
       ctx.rerender();

@@ -153,7 +153,7 @@ function renderMetricCards(items) {
 
 function renderPillList(items, tone = "neutral") {
   if (!items || !items.length) {
-    return `<span class="pill pill-${tone}">none</span>`;
+    return `<span class="pill pill-${tone}">${escapeHtml(bi("无", "None"))}</span>`;
   }
   return items
     .map((item) => `<span class="pill pill-${tone}">${escapeHtml(item)}</span>`)
@@ -177,7 +177,7 @@ function renderKeyValueList(items) {
   `;
 }
 
-function renderJsonPanel(title, data, emptyText = "No response yet.") {
+function renderJsonPanel(title, data, emptyText = bi("暂无返回内容。", "No response yet.")) {
   return `
     <details class="json-panel">
       <summary>${escapeHtml(title)}</summary>
@@ -361,23 +361,23 @@ function renderShell(view) {
           <h1>${escapeHtml(bi("交易操作台", "Web Console"))}</h1>
           <p>
             ${escapeHtml(bi(
-              "这里承接产品化外观，但所有按钮仍只调用当前 Python/FastAPI 后端，不做假写入、不做影子逻辑、不引入第二套后端。",
-              "This console carries the productized look while every button still talks only to the current Python/FastAPI backend. No mock writes, no shadow logic, and no second backend.",
+              "这里承接产品化外观，但所有按钮仍只调用当前 Python/FastAPI 后端；没有影子逻辑，也不引入第二套后端。",
+              "This console carries the productized look while every button still talks only to the current Python/FastAPI backend, with no shadow logic and no second backend.",
             ))}
           </p>
         </div>
         <div class="hero-meta">
           <div>
-            <span class="meta-label">${escapeHtml(bi("接口基址", "API Base"))}</span>
-            <strong>${escapeHtml(api.base)}</strong>
+            <span class="meta-label">${escapeHtml(bi("默认入口", "Default entry"))}</span>
+            <strong>${escapeHtml(bi("TradeOS 桌面壳", "TradeOS desktop shell"))}</strong>
           </div>
           <div>
-            <span class="meta-label">${escapeHtml(bi("模式", "Mode"))}</span>
-            <strong>${escapeHtml(bi("仅真实 FastAPI 接口", "Real FastAPI endpoints only"))}</strong>
+            <span class="meta-label">${escapeHtml(bi("标准体验", "Standard experience"))}</span>
+            <strong>${escapeHtml(bi("目标驱动分析、仲裁、风控与审计", "Target-first analysis, arbitration, risk, and audit"))}</strong>
           </div>
           <div>
-            <span class="meta-label">${escapeHtml(bi("旧入口", "Legacy"))}</span>
-            <strong>${escapeHtml(bi("Streamlit 仅保留为回退入口", "Streamlit kept as fallback only"))}</strong>
+            <span class="meta-label">${escapeHtml(bi("高级诊断", "Advanced diagnostics"))}</span>
+            <strong>${escapeHtml(bi("Diagnostics 中查看 API 与请求历史", "Use Diagnostics for API templates and request history"))}</strong>
           </div>
         </div>
       </header>
@@ -385,7 +385,7 @@ function renderShell(view) {
         ${nav}
       </nav>
       <div class="shell-meta">
-        <span>${escapeHtml(bi("首屏覆盖核心页面，并新增 Data Sources 与 Diagnostics 高级页。", "The first screen covers the core pages, with Data Sources and Diagnostics added for provider setup and advanced API calls."))}</span>
+        <span>${escapeHtml(bi("首屏覆盖核心页面；普通用户走目标驱动流程，高级用户在 Diagnostics 查看原始 API。", "Core pages stay product-facing, while Diagnostics holds the raw API surface for advanced users."))}</span>
         <span>${escapeHtml(bi("当前页面", "Current page"))}: <strong>${escapeHtml(view.label)}</strong></span>
       </div>
       <div class="loading-bar" data-loading-bar hidden></div>

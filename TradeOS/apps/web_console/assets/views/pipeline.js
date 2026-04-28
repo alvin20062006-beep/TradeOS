@@ -104,9 +104,9 @@ export const pipelineView = {
     return `
       <section class="page-head">
         <div>
-          <span class="section-eyebrow">Target-first workflow / 目标驱动工作流</span>
+          <span class="section-eyebrow">目标驱动工作流 / Target-first workflow</span>
           <h2>Pipeline / 流水线</h2>
-          <p>Users choose a target and data profile; TradeOS pulls data, runs six modules, arbitrates, plans risk, simulates execution, audits, and returns feedback. No manual signal fabrication is required.</p>
+          <p>用户只需要选择目标与数据源配置，TradeOS 会自动拉取数据、运行六模块、完成仲裁与风控、执行仿真、写入审计并返回反馈建议，不需要手工伪造内部信号。</p>
         </div>
         <div class="head-actions">
           <span class="endpoint-pill">POST /api/v1/analysis/run-live</span>
@@ -218,7 +218,7 @@ export const pipelineView = {
                 { label: "Intraday Bars", value: data.intraday_bar_count },
                 { label: "Latest Timestamp", value: utils.formatDate(data.latest_timestamp) },
               ])
-            : `<div class="empty-state compact">No live data response yet.</div>`,
+            : `<div class="empty-state compact">尚未返回实时数据。 / No live data response yet.</div>`,
         )}
         ${renderSection(
           "Arbitration Decision / 仲裁决策",
@@ -231,7 +231,7 @@ export const pipelineView = {
                 { label: "Confidence", value: utils.formatNumber(decision.confidence) },
                 { label: "Signal Count", value: decision.signal_count },
               ])
-            : `<div class="empty-state compact">Run the full loop to see arbitration.</div>`,
+            : `<div class="empty-state compact">运行完整闭环后查看仲裁结果。 / Run the full loop to see arbitration.</div>`,
         )}
         ${renderSection(
           "Risk Plan / 风控计划",
@@ -243,7 +243,7 @@ export const pipelineView = {
                 { label: "Final Quantity", value: utils.formatNumber(plan.final_quantity) },
                 { label: "Veto", value: String(plan.veto_triggered) },
               ])
-            : `<div class="empty-state compact">Run the full loop to see risk planning.</div>`,
+            : `<div class="empty-state compact">运行完整闭环后查看风控计划。 / Run the full loop to see risk planning.</div>`,
         )}
         ${renderSection(
           "Execution Simulation / 执行仿真",
@@ -257,7 +257,7 @@ export const pipelineView = {
                 { label: "Avg Price", value: utils.formatNumber(execution.avg_execution_price) },
                 { label: "Execution Audit", value: execution.execution_record_id },
               ])
-            : `<div class="empty-state compact">Execution is simulation-only in the default product profile.</div>`,
+            : `<div class="empty-state compact">默认产品配置仅开放执行仿真。 / Execution is simulation-only in the default product profile.</div>`,
         )}
         ${renderSection(
           "Audit Records / 审计记录",
@@ -269,7 +269,7 @@ export const pipelineView = {
                 { label: "Execution Record", value: audit.execution_record_id },
                 { label: "Feedback Appended", value: String(audit.feedback_registry_appended) },
               ])
-            : `<div class="empty-state compact">Run the full loop to write audit records.</div>`,
+            : `<div class="empty-state compact">运行完整闭环后写入审计记录。 / Run the full loop to write audit records.</div>`,
         )}
         ${renderSection(
           "Feedback Suggestions / 反馈建议",
@@ -283,7 +283,7 @@ export const pipelineView = {
                 ],
                 feedback.items,
               )
-            : `<div class="empty-state compact">No feedback suggestions returned yet.</div>`,
+            : `<div class="empty-state compact">尚未返回反馈建议。 / No feedback suggestions returned yet.</div>`,
         )}
       </section>
 
@@ -347,8 +347,8 @@ export const pipelineView = {
         ctx.setLoading(true);
         ctx.setPageStatus(this.id, {
           tone: "loading",
-          title: "Running six-module analysis",
-          message: "Calling the real live analysis endpoint with target and data profile.",
+          title: "运行六模块分析 / Running six-module analysis",
+          message: "正在用目标与数据源配置调用真实 live analysis 接口。 / Calling the real live analysis endpoint with target and data profile.",
           detail: "POST /api/v1/analysis/run-live",
         });
         const result = await ctx.api.post("/api/v1/analysis/run-live", livePayload());
@@ -356,12 +356,12 @@ export const pipelineView = {
         page.analysisResult = result.data;
         ctx.setPageStatus(this.id, {
           tone: result.ok ? "success" : "error",
-          title: result.ok ? "Six-module analysis completed" : "Six-module analysis failed",
-          message: result.ok ? "Module results came from the backend live analysis path." : (result.error?.message || "Request failed."),
+          title: result.ok ? "六模块分析完成 / Six-module analysis completed" : "六模块分析失败 / Six-module analysis failed",
+          message: result.ok ? "模块结果直接来自后端 live analysis 主路径。 / Module results came from the backend live analysis path." : (result.error?.message || "请求失败。 / Request failed."),
           detail: result.url,
         });
       } catch (error) {
-        ctx.setPageStatus(this.id, { tone: "error", title: "Invalid advanced JSON", message: String(error), detail: "raw_json" });
+        ctx.setPageStatus(this.id, { tone: "error", title: "高级 JSON 无效 / Invalid advanced JSON", message: String(error), detail: "raw_json" });
       } finally {
         ctx.setLoading(false);
         ctx.rerender();
@@ -374,8 +374,8 @@ export const pipelineView = {
         ctx.setLoading(true);
         ctx.setPageStatus(this.id, {
           tone: "loading",
-          title: "Running full TradeOS loop",
-          message: "Calling Data -> Analysis -> Arbitration -> Risk -> Execution(simulation) -> Audit -> Feedback.",
+          title: "运行完整闭环 / Running full TradeOS loop",
+          message: "正在调用 Data -> Analysis -> Arbitration -> Risk -> Execution(simulation) -> Audit -> Feedback 主链。 / Calling the full backend loop.",
           detail: "POST /api/v1/pipeline/run-live",
         });
         const result = await ctx.api.post("/api/v1/pipeline/run-live", livePayload());
@@ -383,12 +383,12 @@ export const pipelineView = {
         page.loopResult = result.data;
         ctx.setPageStatus(this.id, {
           tone: result.ok ? "success" : "error",
-          title: result.ok ? "Full TradeOS loop completed" : "Full TradeOS loop failed",
-          message: result.ok ? "The full backend loop returned decision, risk, execution, audit, and feedback objects." : (result.error?.message || "Request failed."),
+          title: result.ok ? "完整闭环完成 / Full TradeOS loop completed" : "完整闭环失败 / Full TradeOS loop failed",
+          message: result.ok ? "后端完整主链已返回 decision、risk、execution、audit 与 feedback 对象。 / The full backend loop returned decision, risk, execution, audit, and feedback objects." : (result.error?.message || "请求失败。 / Request failed."),
           detail: result.url,
         });
       } catch (error) {
-        ctx.setPageStatus(this.id, { tone: "error", title: "Invalid advanced JSON", message: String(error), detail: "raw_json" });
+        ctx.setPageStatus(this.id, { tone: "error", title: "高级 JSON 无效 / Invalid advanced JSON", message: String(error), detail: "raw_json" });
       } finally {
         ctx.setLoading(false);
         ctx.rerender();
@@ -422,8 +422,8 @@ export const pipelineView = {
       ctx.setLoading(false);
       ctx.setPageStatus(this.id, {
         tone: tests.every((item) => item.ok) ? "success" : "error",
-        title: "Data source tests completed",
-        message: "Every result is returned by /api/v1/data-sources/test; PLACEHOLDER providers intentionally do not pass.",
+        title: "数据源测试完成 / Data source tests completed",
+        message: "每条结果都来自 /api/v1/data-sources/test；PLACEHOLDER provider 故意不会通过。 / Every result is returned by /api/v1/data-sources/test; PLACEHOLDER providers intentionally do not pass.",
         detail: "POST /api/v1/data-sources/test",
       });
       ctx.rerender();

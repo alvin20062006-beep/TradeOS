@@ -137,12 +137,11 @@ export const dataSourcesView = {
     return `
       <section class="page-head">
         <div>
-          <span class="section-eyebrow">Provider Profiles / 数据源配置</span>
+          <span class="section-eyebrow">数据源配置 / Provider profiles</span>
           <h2>Data Sources / 数据源</h2>
           <p>
-            Configure the provider profile used by live pipeline. REAL providers can be tested;
-            PROXY and PLACEHOLDER providers are shown explicitly so reserved integrations are not
-            presented as completed capabilities.
+            配置实时流水线使用的数据源档案。REAL provider 可以直接测试；PROXY 和 PLACEHOLDER
+            会显式标注，避免把预留集成伪装成已经完成的能力。
           </p>
         </div>
         <div class="head-actions">
@@ -158,7 +157,7 @@ export const dataSourcesView = {
             <span class="panel-kicker">Profile / 配置档</span>
             <h3>Live Pipeline Data Source Profile / 实时流水线数据源配置</h3>
           </div>
-          <span class="helper-copy">Pipeline can now send symbol, timeframe, market type, and profile_id.</span>
+          <span class="helper-copy">Pipeline 现在只需传 symbol、timeframe、market type 与 profile_id。</span>
         </div>
         <form data-source-profile-form class="form-grid">
           <label>
@@ -239,14 +238,14 @@ export const dataSourcesView = {
       page.loaded = true;
       page.loading = false;
       ctx.setLoading(false);
-      ctx.setPageStatus(this.id, {
-        tone: profilesResult.ok && capabilitiesResult.ok ? "success" : "error",
-        title: profilesResult.ok && capabilitiesResult.ok ? "Data sources loaded" : "Data sources load failed",
-        message: profilesResult.ok && capabilitiesResult.ok
-          ? "Provider profiles and capability boundaries are loaded from the real API."
-          : "One or more data source API calls failed.",
-        detail: "/api/v1/data-sources/*",
-      });
+        ctx.setPageStatus(this.id, {
+          tone: profilesResult.ok && capabilitiesResult.ok ? "success" : "error",
+          title: profilesResult.ok && capabilitiesResult.ok ? "数据源已加载 / Data sources loaded" : "数据源加载失败 / Data sources load failed",
+          message: profilesResult.ok && capabilitiesResult.ok
+            ? "真实 API 已返回 provider profile 与能力边界。 / Provider profiles and capability boundaries are loaded from the real API."
+            : "一个或多个数据源 API 调用失败。 / One or more data source API calls failed.",
+          detail: "/api/v1/data-sources/*",
+        });
       ctx.rerender();
     };
 
@@ -260,8 +259,8 @@ export const dataSourcesView = {
       const result = await ctx.api.post("/api/v1/data-sources/profiles", page.profile);
       ctx.setLoading(false);
       if (result.ok) {
-        page.lastSave = result.data.profile;
-        ctx.toast("Profile saved / 配置已保存", "success");
+          page.lastSave = result.data.profile;
+          ctx.toast("Profile saved / 配置已保存", "success");
         ctx.setPageStatus(this.id, {
           tone: "success",
           title: "Profile saved / 配置已保存",
@@ -308,8 +307,8 @@ export const dataSourcesView = {
         }
         ctx.setPageStatus(this.id, {
           tone: result.ok ? "success" : "error",
-          title: result.ok ? "Connection test passed" : "Connection test did not pass",
-          message: result.data?.result?.message || result.error?.message || "No response body.",
+          title: result.ok ? "连接测试通过 / Connection test passed" : "连接测试未通过 / Connection test did not pass",
+          message: result.data?.result?.message || result.error?.message || "没有返回响应体。 / No response body.",
           detail: `POST /api/v1/data-sources/test provider=${providerId}`,
         });
         ctx.rerender();

@@ -73,7 +73,7 @@ class BarValidator(BaseValidator):
     # Thresholds
     MAX_PRICE_CHANGE_PCT = 0.5  # 50% intraday change
     MIN_VOLUME = 0
-    MAX_GAP_MINUTES = 1440  # 24 hours for daily bars
+    MAX_GAP_MULTIPLIER = 1.5  # Flag missing bars without over-triggering tiny jitter
     
     def validate(self, bar: MarketBar) -> list[ValidationIssue]:
         """Validate a single bar."""
@@ -176,7 +176,7 @@ class BarValidator(BaseValidator):
                 gap = (bar.timestamp - prev_bar.timestamp).total_seconds()
                 expected_gap = self._expected_gap_seconds(prev_bar.timeframe)
                 
-                if gap > expected_gap * self.MAX_GAP_MINUTES:
+                if gap > expected_gap * self.MAX_GAP_MULTIPLIER:
                     issues.append(ValidationIssue(
                         issue_type="time_gap",
                         severity="warning",

@@ -1,5 +1,5 @@
 """
-Global Schema Definitions for AI Trading Tool
+Global Schema Definitions for TradeOS
 
 All market data, signals, decisions, and execution records
 MUST use these schema definitions. No ad-hoc fields allowed.
@@ -209,6 +209,25 @@ class OrderBookSnapshot(BaseModel):
         if not v:
             return []
         return v
+
+    def model_post_init(self, __context) -> None:
+        bid_depth = sum(size for _, size in self.bids)
+        ask_depth = sum(size for _, size in self.asks)
+        if self.bid_depth == 0 and bid_depth > 0:
+            self.bid_depth = bid_depth
+        if self.ask_depth == 0 and ask_depth > 0:
+            self.ask_depth = ask_depth
+
+        if self.bids and self.asks:
+            best_bid = self.bids[0][0]
+            best_ask = self.asks[0][0]
+            if self.spread == 0:
+                self.spread = best_ask - best_bid
+            if self.mid_price == 0:
+                self.mid_price = (best_bid + best_ask) / 2
+            total_depth = self.bid_depth + self.ask_depth
+            if self.imbalance == 0 and total_depth > 0:
+                self.imbalance = (self.bid_depth - self.ask_depth) / total_depth
 
 
 class TradePrint(BaseModel):

@@ -1,8 +1,8 @@
-# AI Trading Tool - Roadmap
+# TradeOS - Roadmap
 
 ## Project Overview
 
-AI Trading Tool is an AI-first quantitative trading platform that separates intelligence (research + analysis + arbitration) from execution (NautilusTrader). It is designed to be called by AI agents (OpenClaw, Claude Code, etc.).
+TradeOS is an AI-first quantitative trading platform that separates intelligence (research + analysis + arbitration) from execution (NautilusTrader). It is designed to be called by AI agents (OpenClaw, Claude Code, etc.).
 
 ## Phase 1: Foundation (Current)
 **Duration**: 1-2 weeks  

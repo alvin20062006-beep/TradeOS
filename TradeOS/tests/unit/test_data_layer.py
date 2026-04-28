@@ -68,6 +68,11 @@ from core.schemas import (
 )
 
 
+def _unsafe_construct(model_cls, **kwargs):
+    """Build intentionally-invalid schema instances for validator-only tests."""
+    return model_cls.model_construct(**kwargs)
+
+
 # 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
 # FIXTURES
 # 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
@@ -262,21 +267,23 @@ class TestBarValidator:
             timeframe=TimeFrame.M1,
             timestamp=datetime.now(),
             open=100,
-            high=98,  # Invalid: high < low
+            high=101,
             low=99,
             close=100,
             volume=1000,
         )
-        
+        bar.high = 98  # Invalid: high < low
+
         issues = validator.validate(bar)
         assert len(issues) > 0
-        assert any(i.issue_type == "invalid_ohlc" for i in issues)
+        assert any(i.issue_type in {"invalid_ohlc", "invalid_high"} for i in issues)
     
     def test_negative_price(self):
         """Test detection of negative prices."""
         validator = BarValidator()
         
-        bar = MarketBar(
+        bar = _unsafe_construct(
+            MarketBar,
             symbol="AAPL",
             timeframe=TimeFrame.M1,
             timestamp=datetime.now(),
@@ -314,7 +321,8 @@ class TestTickValidator:
         """Test detection of invalid tick price."""
         validator = TickValidator()
         
-        tick = MarketTick(
+        tick = _unsafe_construct(
+            MarketTick,
             symbol="AAPL",
             timestamp=datetime.now(),
             price=-100,  # Invalid
@@ -354,7 +362,8 @@ class TestOrderBookValidator:
         """Test detection of crossed book."""
         validator = OrderBookValidator()
         
-        snapshot = OrderBookSnapshot(
+        snapshot = _unsafe_construct(
+            OrderBookSnapshot,
             symbol="AAPL",
             timestamp=datetime.now(),
             bids=[(101.0, 500)],  # Bid > Ask
@@ -420,7 +429,8 @@ class TestEventValidator:
         """Test detection of out-of-range sentiment."""
         validator = EventValidator()
         
-        event = NewsEvent(
+        event = _unsafe_construct(
+            NewsEvent,
             timestamp=datetime.now(),
             title="Test",
             source="Test",
