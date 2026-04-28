@@ -5,14 +5,18 @@ import { arbitrationView } from "./views/arbitration.js";
 import { strategyPoolView } from "./views/strategy_pool.js";
 import { auditView } from "./views/audit.js";
 import { feedbackView } from "./views/feedback.js";
+import { dataSourcesView } from "./views/data_sources.js";
+import { diagnosticsView } from "./views/diagnostics.js";
 
 const views = {
   dashboard: dashboardView,
   pipeline: pipelineView,
   arbitration: arbitrationView,
   strategy_pool: strategyPoolView,
+  data_sources: dataSourcesView,
   audit: auditView,
   feedback: feedbackView,
+  diagnostics: diagnosticsView,
 };
 
 const initialState = {
@@ -28,8 +32,10 @@ const pageDefaults = {
   pipeline: pipelineView.initialState,
   arbitration: arbitrationView.initialState,
   strategy_pool: strategyPoolView.initialState,
+  data_sources: dataSourcesView.initialState,
   audit: auditView.initialState,
   feedback: feedbackView.initialState,
+  diagnostics: diagnosticsView.initialState,
 };
 
 const state = structuredClone(initialState);
@@ -379,7 +385,7 @@ function renderShell(view) {
         ${nav}
       </nav>
       <div class="shell-meta">
-        <span>${escapeHtml(bi("首屏覆盖 Dashboard、Pipeline、Arbitration、Strategy Pool、Audit、Feedback 六个核心页面。", "The first screen covers Dashboard, Pipeline, Arbitration, Strategy Pool, Audit, and Feedback."))}</span>
+        <span>${escapeHtml(bi("首屏覆盖核心页面，并新增 Data Sources 与 Diagnostics 高级页。", "The first screen covers the core pages, with Data Sources and Diagnostics added for provider setup and advanced API calls."))}</span>
         <span>${escapeHtml(bi("当前页面", "Current page"))}: <strong>${escapeHtml(view.label)}</strong></span>
       </div>
       <div class="loading-bar" data-loading-bar hidden></div>

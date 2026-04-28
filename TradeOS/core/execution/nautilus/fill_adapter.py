@@ -1,7 +1,7 @@
-"""
-Nautilus Fill Adapter - 鎴愪氦閫傞厤
+﻿"""
+Nautilus Fill Adapter - ?????????
 
-灏?Nautilus OrderFilled 浜嬩欢杞崲涓烘湰椤圭洰 FillRecord銆?澶勭悊鎴愪氦鏁版嵁鎻愬彇鍜屾牸寮忚浆鎹€?"""
+??Nautilus OrderFilled ?????????????????? FillRecord??????????????????????????????????"""
 
 from __future__ import annotations
 
@@ -24,35 +24,35 @@ from core.execution.nautilus.instrument_mapper import InstrumentMapper
 
 
 class FillAdapter:
-    """鎴愪氦閫傞厤鍣?    
-    璐熻矗锛?    - Nautilus OrderFilled -> FillRecord 杞崲
-    - 鎴愪氦鏁版嵁鎻愬彇鍜屾牸寮忓寲
+    """???????????    
+    ???????    - Nautilus OrderFilled -> FillRecord ?????
+    - ???????????????????????
     """
     
     def __init__(self, instrument_mapper: InstrumentMapper):
         self._mapper = instrument_mapper
     
     def adapt(self, event: "OrderFilled", intent_id: str) -> FillRecord:
-        """灏?Nautilus OrderFilled 浜嬩欢杞崲涓?FillRecord
+        """??Nautilus OrderFilled ???????????FillRecord
         
         Args:
-            event: Nautilus 鎴愪氦浜嬩欢
-            intent_id: 鍏宠仈鐨勬墽琛屾剰鍥綢D
+            event: Nautilus ?????????
+            intent_id: ?????????????????
             
         Returns:
-            FillRecord: 鏈」鐩垚浜よ褰?        """
+            FillRecord: ????????????????        """
         if not NAUTILUS_AVAILABLE:
             raise RuntimeError("NautilusTrader not available")
         
-        # 鎻愬彇 symbol 鍜?venue
+        # ?????symbol ??venue
         symbol, venue = self._mapper.from_instrument_id(event.instrument_id)
         
-        # 杞崲鏂瑰悜
+        # ?????????
         side = self._adapt_side(event.order_side)
         
-        # 杞崲娴佸姩鎬ф柟鍚?        liquidity_side = self._adapt_liquidity_side(event.liquidity_side)
+        liquidity_side = self._adapt_liquidity_side(event.liquidity_side)
         
-        # 杞崲鏃堕棿鎴筹紙绾崇 -> datetime锛?        filled_at = self._ns_to_datetime(event.ts_event)
+        filled_at = self._ns_to_datetime(event.ts_event)
         
         return FillRecord(
             order_id=str(event.client_order_id),
@@ -70,23 +70,23 @@ class FillAdapter:
         )
     
     def _adapt_side(self, nautilus_side) -> Side:
-        """杞崲浜ゆ槗鏂瑰悜"""
-        # Nautilus OrderSide 鏄?flag 鏋氫妇锛屽€间负鏁存暟鍊?        # BUY = 1, SELL = 2
+        """??????????????"""
+        # Nautilus OrderSide ??flag ???????????????????        # BUY = 1, SELL = 2
         if hasattr(nautilus_side, 'value'):
-            # 濡傛灉鏄灇涓剧被鍨?            side_value = nautilus_side.value
+            side_value = nautilus_side.value
         else:
-            # 濡傛灉鏄暣鏁?            side_value = int(nautilus_side)
+            side_value = int(nautilus_side)
         
         if side_value == 1:  # BUY
             return Side.BUY
-        else:  # SELL (鍊间负2)
+        else:  # SELL (?????)
             return Side.SELL
     
     def _adapt_liquidity_side(
         self,
         nautilus_liquidity: Optional["NautilusLiquiditySide"],
     ) -> Optional[LiquiditySide]:
-        """杞崲娴佸姩鎬ф柟鍚?        
+        """???????????????        
         Nautilus LiquiditySide values:
         - NO_LIQUIDITY_SIDE = 0
         - MAKER = 1
@@ -95,7 +95,7 @@ class FillAdapter:
         if nautilus_liquidity is None:
             return None
         
-        # 妫€鏌ュ€?        if hasattr(nautilus_liquidity, 'value'):
+        if hasattr(nautilus_liquidity, 'value'):
             ls_value = nautilus_liquidity.value
         else:
             ls_value = int(nautilus_liquidity)
@@ -108,15 +108,15 @@ class FillAdapter:
         return None
     
     def _ns_to_datetime(self, ns_timestamp: int) -> datetime:
-        """灏嗙撼绉掓椂闂存埑杞崲涓?datetime
+        """????????????????????datetime
         
         Args:
-            ns_timestamp: 绾崇绾ф椂闂存埑
+            ns_timestamp: ?????????????
             
         Returns:
-            datetime: Python datetime 瀵硅薄
+            datetime: Python datetime ?????
         """
-        # 绾崇 -> 绉?        seconds = ns_timestamp / 1_000_000_000
+        seconds = ns_timestamp / 1_000_000_000
         return datetime.fromtimestamp(seconds)
     
     def adapt_many(
@@ -124,14 +124,14 @@ class FillAdapter:
         events: list["OrderFilled"],
         intent_id: str,
     ) -> list[FillRecord]:
-        """鎵归噺杞崲鎴愪氦浜嬩欢
+        """??????????????????
         
         Args:
-            events: Nautilus 鎴愪氦浜嬩欢鍒楄〃
-            intent_id: 鍏宠仈鐨勬墽琛屾剰鍥綢D
+            events: Nautilus ??????????????
+            intent_id: ?????????????????
             
         Returns:
-            list[FillRecord]: 鎴愪氦璁板綍鍒楄〃
+            list[FillRecord]: ??????????????
         """
         return [self.adapt(e, intent_id) for e in events]
 

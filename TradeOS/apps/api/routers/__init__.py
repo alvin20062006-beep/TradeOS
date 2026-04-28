@@ -1,4 +1,4 @@
-"""apps/api/routers — API 路由聚合"""
+﻿"""apps/api/routers 鈥?API 璺敱鑱氬悎"""
 from apps.api.routers import (
     health,
     analysis,
@@ -7,6 +7,7 @@ from apps.api.routers import (
     audit,
     strategy_pool,
     pipeline,
+    data_sources,
     system,
     auth,
 )

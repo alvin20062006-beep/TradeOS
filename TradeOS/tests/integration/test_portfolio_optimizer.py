@@ -10,11 +10,21 @@ Constraints enforced:
 
 from __future__ import annotations
 
+import importlib.util
 import numpy as np
 import pandas as pd
 import pytest
 
-from core.research.portfolio.optimizer import PortfolioOptimizer
+HAS_CVXPY = importlib.util.find_spec("cvxpy") is not None
+pytestmark = [
+    pytest.mark.research_optional,
+    pytest.mark.skipif(not HAS_CVXPY, reason="research optimizer optional dependency is not installed"),
+]
+
+if HAS_CVXPY:
+    from core.research.portfolio.optimizer import PortfolioOptimizer
+else:
+    PortfolioOptimizer = None
 from core.research.portfolio.schema import (
     ConstraintConfig,
     OptimizationRequest,

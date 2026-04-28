@@ -1,5 +1,5 @@
-"""
-apps/api/routers/health.py — 健康检查与版本
+﻿"""
+apps/api/routers/health.py 鈥?鍋ュ悍妫€鏌ヤ笌鐗堟湰
 """
 
 from __future__ import annotations
@@ -16,13 +16,9 @@ router = APIRouter()
 @router.get("/health", response_model=HealthResponse)
 async def health_check() -> HealthResponse:
     """
-    服务健康检查。
-
-    返回：
-      - status: 'ok'（所有服务正常）/ 'degraded'（部分降级）
-      - services: 各子服务状态
-    """
-    # 基础健康检查（未来可扩展为 dependency check）
+    鏈嶅姟鍋ュ悍妫€鏌ャ€?
+    杩斿洖锛?      - status: 'ok'锛堟墍鏈夋湇鍔℃甯革級/ 'degraded'锛堥儴鍒嗛檷绾э級
+      - services: 鍚勫瓙鏈嶅姟鐘舵€?    """
     services = {
         "api": "ok",
         "arbitration": "ok",
@@ -44,7 +40,7 @@ async def health_check() -> HealthResponse:
 
 @router.get("/version")
 async def version_info() -> dict:
-    """系统版本信息。"""
+    """绯荤粺鐗堟湰淇℃伅銆?"""
     return {
         "version": _get_version(),
         "environment": _get_env(),

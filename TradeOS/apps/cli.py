@@ -233,6 +233,38 @@ def pipeline_run_live(symbol, timeframe, lookback, news_limit, as_json):
         print(f"    direction:   {plan.get('direction')}")
         print(f"    qty:         {plan.get('final_quantity')}")
         print(f"    veto:        {plan.get('veto_triggered')}")
+        if plan.get("veto_reason"):
+            print(f"    veto_reason: {plan.get('veto_reason')}")
+        if plan.get("veto_source"):
+            print(f"    veto_source: {plan.get('veto_source')}")
+
+        suggestions = result.get("suggestions", [])
+        explanation = result.get("explanation", {})
+        data_status = result.get("data_status", {})
+        print("\n  建议:")
+        for item in suggestions:
+            print(
+                f"    {item.get('grade')}: {item.get('direction')} "
+                f"conf={item.get('confidence')} exec={item.get('is_executable')} "
+                f"reason={item.get('reason')}"
+            )
+        if data_status:
+            quote = data_status.get("quote", {})
+            vix = data_status.get("vix", {})
+            print("\n  数据状态:")
+            print(
+                f"    quote: {quote.get('symbol')} {quote.get('price')} "
+                f"[{quote.get('source')}/{quote.get('data_status')}]"
+            )
+            print(
+                f"    vix:   {vix.get('value')} "
+                f"[{vix.get('source')}/{vix.get('data_status')}]"
+            )
+        if explanation:
+            print("\n  解释:")
+            print(f"    why_not_official: {explanation.get('why_not_official')}")
+            print(f"    long_support:     {', '.join(explanation.get('supporting_long', [])) or '-'}")
+            print(f"    short_support:    {', '.join(explanation.get('supporting_short', [])) or '-'}")
 
         audit = result.get("audit", {})
         feedback = result.get("feedback", {})

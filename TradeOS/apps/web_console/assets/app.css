@@ -179,7 +179,7 @@ button {
 
 .tab-bar {
   display: grid;
-  grid-template-columns: repeat(6, minmax(0, 1fr));
+  grid-template-columns: repeat(8, minmax(0, 1fr));
   gap: 10px;
   margin: 18px 0 12px;
 }
@@ -307,6 +307,11 @@ button {
   color: #f8dfd4;
   white-space: pre-wrap;
   word-break: break-word;
+}
+
+.status-box.compact {
+  margin-top: 0.75rem;
+  padding: 0.85rem;
 }
 
 .status-box p,
@@ -506,6 +511,14 @@ button:focus-visible {
   flex-wrap: wrap;
 }
 
+.button-row.compact {
+  margin-top: 0.85rem;
+}
+
+.form-grid .full-span {
+  grid-column: 1 / -1;
+}
+
 .api-overview {
   display: grid;
   gap: 12px;
@@ -668,6 +681,12 @@ button:focus-visible {
 .pill-neutral {
   background: rgba(255, 255, 255, 0.08);
   color: var(--text);
+}
+
+.pill-danger {
+  color: #fda4af;
+  background: rgba(244, 63, 94, 0.12);
+  border-color: rgba(244, 63, 94, 0.32);
 }
 
 .toast-stack {

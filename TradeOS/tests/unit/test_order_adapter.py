@@ -1,13 +1,13 @@
-"""
-Test Order Adapter - 璁㈠崟閫傞厤鍣ㄥ姛鑳芥祴璇?
-楠岃瘉锛?- MARKET 璁㈠崟鏄犲皠
-- LIMIT 璁㈠崟鏄犲皠
-- STOP_MARKET 璁㈠崟鏄犲皠
-- STOP_LIMIT 璁㈠崟鏄犲皠
-- side / quantity / price / stop_price / tif 鏄犲皠
-- 涓嶅悎娉?intent 鐨勬嫆缁?
-API 鐗堟湰: NautilusTrader 1.225.0
-鏇存柊鏃堕棿: 2026-04-06
+﻿"""
+Test Order Adapter - ????????????????????
+???????- MARKET ?????????
+- LIMIT ?????????
+- STOP_MARKET ?????????
+- STOP_LIMIT ?????????
+- side / quantity / price / stop_price / tif ?????
+- ???????intent ???????
+API ????? NautilusTrader 1.225.0
+?????????: 2026-04-06
 """
 
 import pytest
@@ -28,21 +28,21 @@ from core.execution.nautilus import (
 
 @pytest.mark.skipif(not NAUTILUS_AVAILABLE, reason="NautilusTrader not installed")
 class TestOrderAdapter:
-    """OrderAdapter 鍔熻兘娴嬭瘯"""
+    """OrderAdapter ?????????"""
     
     @pytest.fixture
     def mapper(self):
-        """鍒涘缓 InstrumentMapper fixture"""
+        """?????InstrumentMapper fixture"""
         return InstrumentMapper()
     
     @pytest.fixture
     def adapter(self, mapper):
-        """鍒涘缓 OrderAdapter fixture"""
+        """?????OrderAdapter fixture"""
         return OrderAdapter(mapper)
     
     def test_adapt_market_order_buy(self, adapter, mapper):
-        """娴嬭瘯 MARKET BUY 璁㈠崟鏄犲皠"""
-        # 棰勫垱寤?instrument
+        """?????MARKET BUY ?????????"""
+        # ???????instrument
         mapper.create_equity("AAPL", "NASDAQ")
         
         intent = ExecutionIntent(
@@ -62,7 +62,7 @@ class TestOrderAdapter:
         assert order.quantity.as_double() == 100.0
     
     def test_adapt_market_order_sell(self, adapter, mapper):
-        """娴嬭瘯 MARKET SELL 璁㈠崟鏄犲皠"""
+        """?????MARKET SELL ?????????"""
         mapper.create_equity("AAPL", "NASDAQ")
         
         intent = ExecutionIntent(
@@ -80,7 +80,7 @@ class TestOrderAdapter:
         assert order.quantity.as_double() == 50.0
     
     def test_adapt_limit_order(self, adapter, mapper):
-        """娴嬭瘯 LIMIT 璁㈠崟鏄犲皠"""
+        """?????LIMIT ?????????"""
         mapper.create_equity("AAPL", "NASDAQ")
         
         intent = ExecutionIntent(
@@ -100,7 +100,7 @@ class TestOrderAdapter:
         assert order.price.as_double() == 150.50
     
     def test_adapt_stop_market_order(self, adapter, mapper):
-        """娴嬭瘯 STOP_MARKET 璁㈠崟鏄犲皠"""
+        """?????STOP_MARKET ?????????"""
         mapper.create_equity("AAPL", "NASDAQ")
         
         intent = ExecutionIntent(
@@ -119,7 +119,7 @@ class TestOrderAdapter:
         assert order.trigger_price.as_double() == 140.00
     
     def test_adapt_stop_limit_order(self, adapter, mapper):
-        """娴嬭瘯 STOP_LIMIT 璁㈠崟鏄犲皠"""
+        """?????STOP_LIMIT ?????????"""
         mapper.create_equity("AAPL", "NASDAQ")
         
         intent = ExecutionIntent(
@@ -139,7 +139,7 @@ class TestOrderAdapter:
         assert order.trigger_price.as_double() == 146.00
     
     def test_time_in_force_mapping(self, adapter, mapper):
-        """娴嬭瘯 TimeInForce 鏄犲皠"""
+        """?????TimeInForce ?????"""
         mapper.create_equity("AAPL", "NASDAQ")
         
         # GTC
@@ -167,10 +167,10 @@ class TestOrderAdapter:
     
     @pytest.mark.skip(reason="Nautilus Instrument precision is read-only; needs proper instrument setup")
     def test_quantity_precision(self, adapter, mapper):
-        """娴嬭瘯鏁伴噺绮惧害澶勭悊"""
-        # 鍒涘缓甯︽湁绮惧害鐨?instrument
+        """??????????????????"""
+        # ????????????????instrument
         instrument = mapper.create_equity("BTCUSDT", "BINANCE")
-        # 鎵嬪姩璁剧疆绮惧害锛坈reate_equity 鐩墠涓嶆敮鎸?precision 鍙傛暟锛?        instrument.size_precision = 6
+        instrument.size_precision = 6
         
         intent = ExecutionIntent(
             strategy_id="TEST-001",
@@ -183,12 +183,12 @@ class TestOrderAdapter:
         
         order = adapter.adapt(intent)
         
-        # 楠岃瘉鏁伴噺绮惧害
+        # ??????????????
         assert order.quantity.precision == 6
     
     @pytest.mark.skip(reason="Nautilus Instrument precision is read-only; needs proper instrument setup")
     def test_price_precision(self, adapter, mapper):
-        """娴嬭瘯浠锋牸绮惧害澶勭悊"""
+        """??????????????????"""
         instrument = mapper.create_equity("BTCUSDT", "BINANCE")
         instrument.price_precision = 2
         
@@ -204,11 +204,11 @@ class TestOrderAdapter:
         
         order = adapter.adapt(intent)
         
-        # 楠岃瘉浠锋牸绮惧害
+        # ??????????????
         assert order.price.precision == 2
     
     def test_limit_order_missing_price_error(self, adapter, mapper):
-        """娴嬭瘯 LIMIT 璁㈠崟缂哄皯 price 鏃舵姏鍑哄紓甯?""
+        """?????LIMIT ????????? price ???????????"""
         mapper.create_equity("AAPL", "NASDAQ")
         
         intent = ExecutionIntent(
@@ -217,14 +217,14 @@ class TestOrderAdapter:
             side=Side.BUY,
             order_type=OrderType.LIMIT,
             quantity=Decimal("100"),
-            # price 缂哄け
+            # price ?????
         )
         
         with pytest.raises(ValueError, match="LIMIT order requires price"):
             adapter.adapt(intent)
     
     def test_stop_market_missing_stop_price_error(self, adapter, mapper):
-        """娴嬭瘯 STOP_MARKET 璁㈠崟缂哄皯 stop_price 鏃舵姏鍑哄紓甯?""
+        """?????STOP_MARKET ????????? stop_price ???????????"""
         mapper.create_equity("AAPL", "NASDAQ")
         
         intent = ExecutionIntent(
@@ -233,17 +233,17 @@ class TestOrderAdapter:
             side=Side.SELL,
             order_type=OrderType.STOP_MARKET,
             quantity=Decimal("100"),
-            # stop_price 缂哄け
+            # stop_price ?????
         )
         
         with pytest.raises(ValueError, match="STOP_MARKET order requires stop_price"):
             adapter.adapt(intent)
     
     def test_stop_limit_missing_prices_error(self, adapter, mapper):
-        """娴嬭瘯 STOP_LIMIT 璁㈠崟缂哄皯 price/stop_price 鏃舵姏鍑哄紓甯?""
+        """?????STOP_LIMIT ????????? price/stop_price ???????????"""
         mapper.create_equity("AAPL", "NASDAQ")
         
-        # 缂哄皯 price
+        # ?????price
         intent = ExecutionIntent(
             strategy_id="TEST-001",
             symbol="AAPL",
@@ -251,13 +251,13 @@ class TestOrderAdapter:
             order_type=OrderType.STOP_LIMIT,
             quantity=Decimal("100"),
             stop_price=Decimal("140.00"),
-            # price 缂哄け
+            # price ?????
         )
         
         with pytest.raises(ValueError, match="STOP_LIMIT order requires both price and stop_price"):
             adapter.adapt(intent)
         
-        # 缂哄皯 stop_price
+        # ?????stop_price
         intent.price = Decimal("145.00")
         intent.stop_price = None
         
@@ -265,7 +265,7 @@ class TestOrderAdapter:
             adapter.adapt(intent)
     
     def test_client_order_id_custom(self, adapter, mapper):
-        """娴嬭瘯鑷畾涔?client_order_id"""
+        """???????????client_order_id"""
         mapper.create_equity("AAPL", "NASDAQ")
         
         intent = ExecutionIntent(
@@ -281,7 +281,7 @@ class TestOrderAdapter:
         assert str(order.client_order_id) == "MY-ORDER-123"
     
     def test_client_order_id_auto_generated(self, adapter, mapper):
-        """娴嬭瘯鑷姩鐢熸垚鐨?client_order_id"""
+        """????????????????client_order_id"""
         mapper.create_equity("AAPL", "NASDAQ")
         
         intent = ExecutionIntent(
@@ -294,6 +294,6 @@ class TestOrderAdapter:
         
         order = adapter.adapt(intent)
         
-        # 楠岃瘉鐢熸垚浜?client_order_id锛堜娇鐢?intent_id 鍓?浣嶏級
+        # ???????????client_order_id???????intent_id ???????
         assert len(str(order.client_order_id)) > 0
 

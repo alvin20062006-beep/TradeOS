@@ -16,6 +16,7 @@ from apps.api.routers import (
     audit,
     strategy_pool,
     pipeline,
+    data_sources,
     system,
     auth,
 )
@@ -42,6 +43,7 @@ app.include_router(risk.router, prefix="/api/v1")
 app.include_router(audit.router, prefix="/api/v1")
 app.include_router(strategy_pool.router, prefix="/api/v1")
 app.include_router(pipeline.router, prefix="/api/v1")
+app.include_router(data_sources.router, prefix="/api/v1")
 app.include_router(auth.router, prefix="/api/v1")  # /auth/audit, /auth/users
 
 WEB_CONSOLE_DIR = Path(__file__).resolve().parents[1] / "web_console"

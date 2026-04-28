@@ -33,6 +33,7 @@ dependencies = [
     "fastapi>=0.115",
     "uvicorn[standard]>=0.30",
     "streamlit>=1.40",
+    "pywebview>=5.3",
     "click>=8.1",
     "requests>=2.31",
     "yfinance>=0.2.54",
@@ -163,6 +164,12 @@ plugins = ["pydantic.mypy"]
 asyncio_mode = "auto"
 testpaths = ["tests"]
 addopts = "-v --tb=short"
+markers = [
+    "release: product release gate tests that must pass before shipping",
+    "integration: core integration and closed-loop tests",
+    "research_optional: research tests requiring optional optimizer/qlib/cvxpy dependencies",
+    "legacy: legacy compatibility tests that are not part of the release gate",
+]
 filterwarnings = [
     "ignore::DeprecationWarning",
 ]

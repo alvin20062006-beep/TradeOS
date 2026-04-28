@@ -20,8 +20,12 @@ class RiskCalculateRequest(BaseModel):
     # 仲裁决策摘要（API 层做最小转换，不引用核心 ArbitrationDecision）
     decision_id: str
     symbol: str
-    bias: Literal["long_bias", "short_bias", "hold_bias", "no_trade"]
+    bias: Literal["long_bias", "short_bias", "hold_bias", "no_trade", "reduce_risk", "exit_bias"]
     confidence: float = Field(ge=0.0, le=1.0)
+    direction: Optional[Literal["LONG", "SHORT", "FLAT"]] = Field(default=None)
+    target_direction: Optional[Literal["LONG", "SHORT", "FLAT"]] = Field(default=None)
+    risk_adjustment: float = Field(default=1.0, ge=0.0, le=1.0)
+    no_trade_reason: Optional[str] = Field(default=None)
 
     # 组合状态
     # 组合状态
@@ -73,6 +77,9 @@ class PositionPlanView(BaseModel):
     exec_action: str = Field(description="BUY | SELL | FLAT")
     final_quantity: float = Field(description="最终交易数量（可为 0）")
     veto_triggered: bool = Field(description="是否被 veto")
+    veto_reason: Optional[str] = None
+    veto_source: Optional[str] = None
+    decision_gate_reason: Optional[str] = None
     limit_checks: list[LimitCheckView] = Field(default_factory=list)
     execution_plan: Optional["ExecutionPlanView"] = Field(
         default=None, description="执行计划（veto=False 时有值）"

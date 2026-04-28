@@ -1,7 +1,7 @@
-"""
-Nautilus Data Adapter - 琛屾儏鏁版嵁閫傞厤
+﻿"""
+Nautilus Data Adapter - ??????????????
 
-灏嗘湰椤圭洰 DataProvider 鏁版嵁杞崲涓?Nautilus Data 瀵硅薄銆?鏀寔 QuoteTick, TradeTick, Bar 绛夋暟鎹被鍨嬨€?"""
+????????? DataProvider ???????????Nautilus Data ???????????? QuoteTick, TradeTick, Bar ??????????????"""
 
 from __future__ import annotations
 
@@ -24,9 +24,9 @@ from core.execution.nautilus.instrument_mapper import InstrumentMapper
 
 
 class DataAdapter:
-    """琛屾儏鏁版嵁閫傞厤鍣?    
-    璐熻矗锛?    - 鏈」鐩競鍦烘暟鎹?-> Nautilus Data 瀵硅薄杞崲
-    - 鏀寔 QuoteTick锛堟姤浠凤級銆乀radeTick锛堟垚浜わ級銆丅ar锛圞绾匡級
+    """????????????????    
+    ???????    - ????????????????-> Nautilus Data ?????????
+    - ????? QuoteTick????????????radeTick????????????ar????????
     """
     
     def __init__(self, instrument_mapper: InstrumentMapper):
@@ -42,30 +42,30 @@ class DataAdapter:
         timestamp: datetime,
         venue: Optional[str] = None,
     ) -> "QuoteTick":
-        """灏嗘姤浠锋暟鎹浆鎹负 Nautilus QuoteTick
+        """?????????????????? Nautilus QuoteTick
         
         Args:
-            symbol: 鏍囩殑浠ｇ爜
-            bid_price: 涔颁环
-            bid_size: 涔伴噺
-            ask_price: 鍗栦环
-            ask_size: 鍗栭噺
-            timestamp: 鏃堕棿鎴?            venue: 浜ゆ槗鎵€
+            symbol: ?????????
+            bid_price: ?????
+            bid_size: ?????
+            ask_price: ?????
+            ask_size: ?????
+            timestamp: ???????            venue: ????????
             
         Returns:
-            QuoteTick: Nautilus 鎶ヤ环瀵硅薄
+            QuoteTick: Nautilus ??????????
         """
         if not NAUTILUS_AVAILABLE:
             raise RuntimeError("NautilusTrader not available")
         
         instrument_id = self._mapper.to_instrument_id(symbol, venue)
         
-        # 鑾峰彇 instrument 鐢ㄤ簬绮惧害
+        # ?????instrument ?????????
         instrument = self._mapper.get_cached(symbol)
         if instrument is None:
             instrument = self._mapper.create_equity(symbol, venue or "NASDAQ")
         
-        # 杞崲鏃堕棿鎴充负绾崇
+        # ??????????????????
         ts_ns = self._datetime_to_ns(timestamp)
         
         return QuoteTick(
@@ -88,16 +88,16 @@ class DataAdapter:
         timestamp: datetime,
         venue: Optional[str] = None,
     ) -> "TradeTick":
-        """灏嗘垚浜ゆ暟鎹浆鎹负 Nautilus TradeTick
+        """?????????????????? Nautilus TradeTick
         
         Args:
-            symbol: 鏍囩殑浠ｇ爜
-            price: 鎴愪氦浠?            size: 鎴愪氦閲?            aggressor_side: 涓诲姩鎴愪氦鏂瑰悜 ("BUY" or "SELL")
-            trade_id: 鎴愪氦ID
-            timestamp: 鏃堕棿鎴?            venue: 浜ゆ槗鎵€
+            symbol: ?????????
+            price: ???????            size: ???????            aggressor_side: ??????????????("BUY" or "SELL")
+            trade_id: ?????D
+            timestamp: ???????            venue: ????????
             
         Returns:
-            TradeTick: Nautilus 鎴愪氦瀵硅薄
+            TradeTick: Nautilus ??????????
         """
         if not NAUTILUS_AVAILABLE:
             raise RuntimeError("NautilusTrader not available")
@@ -106,15 +106,15 @@ class DataAdapter:
         
         instrument_id = self._mapper.to_instrument_id(symbol, venue)
         
-        # 鑾峰彇 instrument 鐢ㄤ簬绮惧害
+        # ?????instrument ?????????
         instrument = self._mapper.get_cached(symbol)
         if instrument is None:
             instrument = self._mapper.create_equity(symbol, venue or "NASDAQ")
         
-        # 杞崲鏃堕棿鎴充负绾崇
+        # ??????????????????
         ts_ns = self._datetime_to_ns(timestamp)
         
-        # 杞崲 aggressor side
+        # ?????aggressor side
         if aggressor_side.upper() == "BUY":
             side = AggressorSide.BUYER
         else:
@@ -139,20 +139,20 @@ class DataAdapter:
         close_price: Decimal,
         volume: Decimal,
         timestamp: datetime,
-        bar_type: str,  # 濡?"AAPL.NASDAQ-1-MINUTE-LAST-EXTERNAL"
+        bar_type: str,  # ??"AAPL.NASDAQ-1-MINUTE-LAST-EXTERNAL"
         venue: Optional[str] = None,
     ) -> "Bar":
-        """灏咾绾挎暟鎹浆鎹负 Nautilus Bar
+        """?????????????????Nautilus Bar
         
         Args:
-            symbol: 鏍囩殑浠ｇ爜
-            open_price: 寮€鐩樹环
-            high_price: 鏈€楂樹环
-            low_price: 鏈€浣庝环
-            close_price: 鏀剁洏浠?            volume: 鎴愪氦閲?            timestamp: 鏃堕棿鎴?            bar_type: K绾跨被鍨嬫爣璇?            venue: 浜ゆ槗鎵€
+            symbol: ?????????
+            open_price: ????????
+            high_price: ????????
+            low_price: ????????
+            close_price: ???????            volume: ???????            timestamp: ???????            bar_type: K???????????            venue: ????????
             
         Returns:
-            Bar: Nautilus K绾垮璞?        """
+            Bar: Nautilus K???????        """
         if not NAUTILUS_AVAILABLE:
             raise RuntimeError("NautilusTrader not available")
         
@@ -160,15 +160,15 @@ class DataAdapter:
         
         instrument_id = self._mapper.to_instrument_id(symbol, venue)
         
-        # 鑾峰彇 instrument 鐢ㄤ簬绮惧害
+        # ?????instrument ?????????
         instrument = self._mapper.get_cached(symbol)
         if instrument is None:
             instrument = self._mapper.create_equity(symbol, venue or "NASDAQ")
         
-        # 杞崲鏃堕棿鎴充负绾崇
+        # ??????????????????
         ts_ns = self._datetime_to_ns(timestamp)
         
-        # 瑙ｆ瀽 bar_type
+        # ?????bar_type
         bar_type_obj = BarType.from_str(bar_type)
         
         return Bar(
@@ -183,26 +183,26 @@ class DataAdapter:
         )
     
     def _datetime_to_ns(self, dt: datetime) -> int:
-        """灏?datetime 杞崲涓虹撼绉掓椂闂存埑
+        """??datetime ??????????????????
         
         Args:
-            dt: Python datetime 瀵硅薄
+            dt: Python datetime ?????
             
         Returns:
-            int: 绾崇绾ф椂闂存埑
+            int: ?????????????
         """
-        # 绉?-> 绾崇
+        # ??-> ?????
         seconds = dt.timestamp()
         return int(seconds * 1_000_000_000)
     
     def _ns_to_datetime(self, ns_timestamp: int) -> datetime:
-        """灏嗙撼绉掓椂闂存埑杞崲涓?datetime
+        """????????????????????datetime
         
         Args:
-            ns_timestamp: 绾崇绾ф椂闂存埑
+            ns_timestamp: ?????????????
             
         Returns:
-            datetime: Python datetime 瀵硅薄
+            datetime: Python datetime ?????
         """
         seconds = ns_timestamp / 1_000_000_000
         return datetime.fromtimestamp(seconds)

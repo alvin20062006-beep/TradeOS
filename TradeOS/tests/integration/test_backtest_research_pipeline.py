@@ -25,13 +25,23 @@ This test does NOT import from core.execution or NautilusTrader.
 import pytest
 import pandas as pd
 import numpy as np
+import importlib.util
 from datetime import datetime, timezone
+
+HAS_CVXPY = importlib.util.find_spec("cvxpy") is not None
+pytestmark = [
+    pytest.mark.research_optional,
+    pytest.mark.skipif(not HAS_CVXPY, reason="research optimizer optional dependency is not installed"),
+]
 
 from core.research.backtest.engine import BacktestEngine
 from core.research.backtest.evaluator import BacktestEvaluator
 from core.research.backtest.schema import BacktestConfig, CostModelConfig
 from core.research.backtest.cost_model import CostModel
-from core.research.portfolio.optimizer import PortfolioOptimizer
+if HAS_CVXPY:
+    from core.research.portfolio.optimizer import PortfolioOptimizer
+else:
+    PortfolioOptimizer = None
 from core.research.portfolio.schema import OptimizationRequest
 from core.research.portfolio.schema import ConstraintConfig
 from core.research.strategy.base import StrategyBase

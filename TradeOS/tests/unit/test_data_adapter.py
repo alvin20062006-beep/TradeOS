@@ -1,8 +1,8 @@
-"""
-Test Data Adapter - 琛屾儏鏁版嵁閫傞厤鍣ㄥ姛鑳芥祴璇?
-楠岃瘉锛?- MarketBar -> Nautilus Bar
+﻿"""
+Test Data Adapter - ?????????????????????????
+???????- MarketBar -> Nautilus Bar
 - MarketTick -> QuoteTick / TradeTick
-- schema 瀛楁瀹屾暣鎬?- 鏃堕棿鎴宠浆鎹?- 闈炴硶鏁版嵁鐨勬姤閿欐垨鎷掔粷
+- schema ????????????- ???????????- ???????????????????????
 """
 
 import pytest
@@ -18,20 +18,20 @@ from core.execution.nautilus import (
 
 @pytest.mark.skipif(not NAUTILUS_AVAILABLE, reason="NautilusTrader not installed")
 class TestDataAdapter:
-    """DataAdapter 鍔熻兘娴嬭瘯"""
+    """DataAdapter ?????????"""
     
     @pytest.fixture
     def mapper(self):
-        """鍒涘缓 InstrumentMapper fixture"""
+        """?????InstrumentMapper fixture"""
         return InstrumentMapper()
     
     @pytest.fixture
     def adapter(self, mapper):
-        """鍒涘缓 DataAdapter fixture"""
+        """?????DataAdapter fixture"""
         return DataAdapter(mapper)
     
     def test_adapt_quote_basic(self, adapter, mapper):
-        """娴嬭瘯鍩烘湰鎶ヤ环鏁版嵁杞崲"""
+        """???????????????????????"""
         mapper.create_equity("AAPL", "NASDAQ")
         
         timestamp = datetime(2024, 1, 1, 12, 0, 0)
@@ -55,7 +55,7 @@ class TestDataAdapter:
     
     @pytest.mark.skip(reason="Nautilus Instrument precision is read-only; needs proper instrument setup")
     def test_adapt_quote_precision(self, adapter, mapper):
-        """娴嬭瘯鎶ヤ环鏁版嵁绮惧害澶勭悊"""
+        """???????????????????????"""
         mapper.create_equity("BTCUSDT", "BINANCE")
         
         timestamp = datetime(2024, 1, 1, 12, 0, 0)
@@ -74,7 +74,7 @@ class TestDataAdapter:
         assert quote.bid_size.precision == 6
     
     def test_adapt_trade_basic(self, adapter, mapper):
-        """娴嬭瘯鍩烘湰鎴愪氦鏁版嵁杞崲"""
+        """???????????????????????"""
         mapper.create_equity("AAPL", "NASDAQ")
         
         timestamp = datetime(2024, 1, 1, 12, 0, 0)
@@ -95,7 +95,7 @@ class TestDataAdapter:
         assert str(trade.trade_id) == "TRADE-001"
     
     def test_adapt_trade_sell_aggressor(self, adapter, mapper):
-        """娴嬭瘯 SELL aggressor 鎴愪氦鏁版嵁"""
+        """?????SELL aggressor ?????????"""
         mapper.create_equity("AAPL", "NASDAQ")
         
         timestamp = datetime(2024, 1, 1, 12, 0, 0)
@@ -111,11 +111,11 @@ class TestDataAdapter:
         )
         
         assert trade.price.as_double() == 150.01
-        # aggressor_side 搴斾负 SELLER (Nautilus enum .name 杩斿洖鏋氫妇鍚?
+        # aggressor_side ?????SELLER (Nautilus enum .name ???????????
         assert trade.aggressor_side.name == "SELLER"
     
     def test_adapt_trade_precision(self, adapter, mapper):
-        """娴嬭瘯鎴愪氦鏁版嵁绮惧害澶勭悊"""
+        """???????????????????????"""
         mapper.create_crypto_perpetual("BTCUSDT", "BINANCE", price_precision=2, size_precision=6)
         
         timestamp = datetime(2024, 1, 1, 12, 0, 0)
@@ -134,7 +134,7 @@ class TestDataAdapter:
         assert trade.size.precision == 6
     
     def test_adapt_bar_basic(self, adapter, mapper):
-        """娴嬭瘯鍩烘湰 K 绾挎暟鎹浆鎹?""
+        """????????? K ???????????"""
         mapper.create_equity("AAPL", "NASDAQ")
         
         timestamp = datetime(2024, 1, 1, 12, 0, 0)
@@ -159,7 +159,7 @@ class TestDataAdapter:
         assert bar.volume.as_double() == 10000.0
     
     def test_adapt_bar_precision(self, adapter, mapper):
-        """娴嬭瘯 K 绾挎暟鎹簿搴﹀鐞?""
+        """?????K ????????????????"""
         mapper.create_crypto_perpetual("BTCUSDT", "BINANCE", price_precision=2, size_precision=6)
         
         timestamp = datetime(2024, 1, 1, 12, 0, 0)
@@ -180,7 +180,7 @@ class TestDataAdapter:
         assert bar.volume.precision == 6
     
     def test_timestamp_conversion_to_ns(self, adapter, mapper):
-        """娴嬭瘯鏃堕棿鎴宠浆鎹负绾崇"""
+        """???????????????????????"""
         mapper.create_equity("AAPL", "NASDAQ")
         
         # 2024-01-01 12:00:00 UTC
@@ -196,13 +196,13 @@ class TestDataAdapter:
             venue="NASDAQ",
         )
         
-        # 楠岃瘉鏃堕棿鎴宠浆鎹?        expected_ns = int(timestamp.timestamp() * 1_000_000_000)
+        expected_ns = int(timestamp.timestamp() * 1_000_000_000)
         assert quote.ts_event == expected_ns
         assert quote.ts_init == expected_ns
     
     def test_timestamp_conversion_from_ns(self, adapter):
-        """娴嬭瘯绾崇鏃堕棿鎴宠浆鍥?datetime"""
-        # 2024-01-01 12:00:00 UTC 鐨勭撼绉掓椂闂存埑
+        """????????????????????datetime"""
+        # 2024-01-01 12:00:00 UTC ??????????????
         ns_timestamp = int(datetime(2024, 1, 1, 12, 0, 0).timestamp() * 1_000_000_000)
         
         dt = adapter._ns_to_datetime(ns_timestamp)
@@ -211,8 +211,8 @@ class TestDataAdapter:
         assert dt == expected_dt
     
     def test_auto_create_instrument_for_quote(self, adapter, mapper):
-        """娴嬭瘯鎶ヤ环鏁版嵁鑷姩鍒涘缓 instrument"""
-        # 涓嶉鍒涘缓 instrument
+        """???????????????????????instrument"""
+        # ????????? instrument
         
         timestamp = datetime(2024, 1, 1, 12, 0, 0)
         
@@ -226,12 +226,12 @@ class TestDataAdapter:
             venue="NASDAQ",
         )
         
-        # 搴旇嚜鍔ㄥ垱寤?instrument
+        # ???????????instrument
         assert str(quote.instrument_id.symbol) == "TSLA"
-        # 楠岃瘉 instrument 宸茬紦瀛?        assert mapper.get_cached("TSLA") is not None
+        # ?????instrument ???????        assert mapper.get_cached("TSLA") is not None
     
     def test_auto_create_instrument_for_trade(self, adapter, mapper):
-        """娴嬭瘯鎴愪氦鏁版嵁鑷姩鍒涘缓 instrument"""
+        """???????????????????????instrument"""
         timestamp = datetime(2024, 1, 1, 12, 0, 0)
         
         trade = adapter.adapt_trade(
@@ -248,7 +248,7 @@ class TestDataAdapter:
         assert mapper.get_cached("TSLA") is not None
     
     def test_auto_create_instrument_for_bar(self, adapter, mapper):
-        """娴嬭瘯 K 绾挎暟鎹嚜鍔ㄥ垱寤?instrument"""
+        """?????K ????????????????instrument"""
         timestamp = datetime(2024, 1, 1, 12, 0, 0)
         
         bar = adapter.adapt_bar(
@@ -268,7 +268,7 @@ class TestDataAdapter:
     
     @pytest.mark.skip(reason="CryptoPerpetual creation needs proper size_increment/margin_init parameter setup")
     def test_crypto_data_adaptation(self, adapter, mapper):
-        """娴嬭瘯鍔犲瘑璐у竵鏁版嵁杞崲"""
+        """??????????????????????"""
         # Skip: Nautilus CryptoPerpetual requires size_increment > 0, margin_init > 0
         # Current mapper.create_crypto_perpetual() needs parameter refactoring
         pass

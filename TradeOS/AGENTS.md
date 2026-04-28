@@ -230,7 +230,7 @@ async def run_research():
 ### Circuit Breaker
 
 ```python
-from ai_trading_tool.core.shared.utils import CircuitBreaker
+from core.shared.utils import CircuitBreaker
 
 breaker = CircuitBreaker(
     failure_threshold=5,
@@ -277,7 +277,7 @@ elif approval.status == "rejected":
 Agents should log all actions:
 
 ```python
-from ai_trading_tool.core.shared.logging import get_logger
+from core.shared.logging import get_logger
 
 logger = get_logger("agent")
 

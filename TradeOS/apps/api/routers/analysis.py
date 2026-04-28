@@ -1,9 +1,7 @@
-"""
-apps/api/routers/analysis.py — 分析引擎 API 端点
+﻿"""
+apps/api/routers/analysis.py 鈥?鍒嗘瀽寮曟搸 API 绔偣
 
-POST /analysis/run：触发 Phase 5 分析（suggestion-only，写 FeedbackRegistry）
-AI 通过 API DTO 接入，禁止直接绑定核心 AnalysisSignal。
-"""
+POST /analysis/run锛氳Е鍙?Phase 5 鍒嗘瀽锛坰uggestion-only锛屽啓 FeedbackRegistry锛?AI 閫氳繃 API DTO 鎺ュ叆锛岀姝㈢洿鎺ョ粦瀹氭牳蹇?AnalysisSignal銆?"""
 
 from __future__ import annotations
 
@@ -43,14 +41,11 @@ async def run_analysis(
     user: User = Depends(require_suggest),
 ) -> AnalysisRunResponse:
     """
-    触发 Phase 5 分析引擎。
-
-    suggestion-only：只输出 AnalysisSignal，不改 registry 真值。
-    AI 可通过此端点产生建议，建议结果写入 FeedbackRegistry（append-only）。
-
-    接入：core.analysis.engine.AnalysisEngine.analyze()
+    瑙﹀彂 Phase 5 鍒嗘瀽寮曟搸銆?
+    suggestion-only锛氬彧杈撳嚭 AnalysisSignal锛屼笉鏀?registry 鐪熷€笺€?    AI 鍙€氳繃姝ょ鐐逛骇鐢熷缓璁紝寤鸿缁撴灉鍐欏叆 FeedbackRegistry锛坅ppend-only锛夈€?
+    鎺ュ叆锛歝ore.analysis.engine.AnalysisEngine.analyze()
     """
-    # 转换 DTO → 核心参数
+    # 杞崲 DTO 鈫?鏍稿績鍙傛暟
     data = {
         "score": req.score,
         "alpha": req.alpha,
@@ -58,13 +53,11 @@ async def run_analysis(
         "direction": req.direction,
     }
 
-    # 调用 Phase 5 核心引擎（内部 import，避免启动时强制加载）
-    signal = _call_analysis_engine(req.symbol, data)
+    # 璋冪敤 Phase 5 鏍稿績寮曟搸锛堝唴閮?import锛岄伩鍏嶅惎鍔ㄦ椂寮哄埗鍔犺浇锛?    signal = _call_analysis_engine(req.symbol, data)
 
-    # 写 FeedbackRegistry（append-only）
-    _log_analysis_feedback(user.id, req, signal)
+    # 鍐?FeedbackRegistry锛坅ppend-only锛?    _log_analysis_feedback(user.id, req, signal)
 
-    # TechnicalSignal.direction 是 Direction enum，转为字符串
+    # TechnicalSignal.direction 鏄?Direction enum锛岃浆涓哄瓧绗︿覆
     signal_dir = signal.direction.value if hasattr(signal.direction, "value") else str(signal.direction)
 
     return AnalysisRunResponse(
@@ -124,23 +117,18 @@ async def run_live_analysis(
     )
 
 
-# ── 内部调用 ────────────────────────────────────────────────
+# 鈹€鈹€ 鍐呴儴璋冪敤 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
 
 def _call_analysis_engine(symbol: str, data: dict):
     """
-    调用 Phase 5 技术分析引擎（TechnicalEngine）。
+    璋冪敤 Phase 5 鎶€鏈垎鏋愬紩鎿庯紙TechnicalEngine锛夈€?
+    娉ㄦ剰锛歍echnicalEngine 闇€瑕佺湡瀹?K 绾挎暟鎹紙鑷冲皯 20 鏍?bar锛夈€?    API 棣栨壒鏀寔涓ょ妯″紡锛?    1. 鏈夌湡瀹?bar 鏁版嵁 鈫?璋冪敤 TechnicalEngine
+    2. 鏃?bar 鏁版嵁锛堟祴璇?demo锛夆啋 鐩存帴鏋勯€?TechnicalSignal
 
-    注意：TechnicalEngine 需要真实 K 线数据（至少 20 根 bar）。
-    API 首批支持两种模式：
-    1. 有真实 bar 数据 → 调用 TechnicalEngine
-    2. 无 bar 数据（测试/demo）→ 直接构造 TechnicalSignal
-
-    后续扩展：接入 Phase 1 数据层，通过 symbol 获取真实 bar。
-    """
+    鍚庣画鎵╁睍锛氭帴鍏?Phase 1 鏁版嵁灞傦紝閫氳繃 symbol 鑾峰彇鐪熷疄 bar銆?    """
     from core.schemas import TechnicalSignal, Direction, Regime
 
-    # 尝试构造 TechnicalSignal（绕过 TechnicalEngine 的 bar 校验）
-    # API DTO 传入的 data 已包含 symbol/direction/confidence
+    # 灏濊瘯鏋勯€?TechnicalSignal锛堢粫杩?TechnicalEngine 鐨?bar 鏍￠獙锛?    # API DTO 浼犲叆鐨?data 宸插寘鍚?symbol/direction/confidence
     direction_str = data.get("direction", "FLAT").upper()
     dir_map = {"LONG": Direction.LONG, "SHORT": Direction.SHORT, "FLAT": Direction.FLAT}
     direction = dir_map.get(direction_str, Direction.FLAT)
@@ -151,7 +139,7 @@ def _call_analysis_engine(symbol: str, data: dict):
         timestamp=datetime.utcnow(),
         direction=direction,
         confidence=float(data.get("confidence", 0.5)),
-        regime=Regime.UNKNOWN,  # API 端点默认 UNKNOWN，后续可扩展
+        regime=Regime.UNKNOWN,  # API 绔偣榛樿 UNKNOWN锛屽悗缁彲鎵╁睍
         entry_score=float(data.get("score", 0.5)),
         exit_score=float(data.get("score", 0.5)),
     )
@@ -162,14 +150,16 @@ def _call_analysis_engine(symbol: str, data: dict):
 def _call_live_analysis(req: LiveRunRequest) -> dict:
     from core.data.live import LiveAnalysisOrchestrator
 
-    orchestrator = LiveAnalysisOrchestrator()
+    orchestrator = LiveAnalysisOrchestrator(profile_id=req.profile_id)
     result = orchestrator.run_live_analysis(
         symbol=req.symbol,
         timeframe=req.timeframe,
+        market_type=req.market_type,
         lookback=req.lookback,
         start=req.start,
         end=req.end,
         news_limit=req.news_limit,
+        profile_id=req.profile_id,
     )
     bars = result["bars"]
     technical = result["signals"]["technical"]
@@ -178,6 +168,8 @@ def _call_live_analysis(req: LiveRunRequest) -> dict:
         "data": {
             "symbol": req.symbol,
             "timeframe": req.timeframe,
+            "market_type": req.market_type,
+            "profile_id": result["profile"].profile_id,
             "lookback": req.lookback,
             "start": result["start"],
             "end": result["end"],
@@ -198,9 +190,7 @@ def _call_live_analysis(req: LiveRunRequest) -> dict:
 
 def _log_analysis_feedback(user_id: str, req: AnalysisRunRequest, signal) -> None:
     """
-    将分析结果追加到 FeedbackRegistry（append-only）。
-    这是 AI suggestion 的合法写入路径。
-    """
+    灏嗗垎鏋愮粨鏋滆拷鍔犲埌 FeedbackRegistry锛坅ppend-only锛夈€?    杩欐槸 AI suggestion 鐨勫悎娉曞啓鍏ヨ矾寰勩€?    """
     try:
         from apps.auth import get_auth_service
         from datetime import datetime
@@ -219,4 +209,4 @@ def _log_analysis_feedback(user_id: str, req: AnalysisRunRequest, signal) -> Non
             result="accepted",
         )
     except Exception:
-        pass  # 审计日志失败不阻断主流程
+        pass  # 瀹¤鏃ュ織澶辫触涓嶉樆鏂富娴佺▼

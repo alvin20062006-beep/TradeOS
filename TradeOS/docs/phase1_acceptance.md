@@ -1,4 +1,4 @@
-# Phase 1 Acceptance Criteria
+﻿# Phase 1 Acceptance Criteria
 
 This document defines the acceptance criteria for Phase 1 (Foundation).
 
@@ -6,26 +6,26 @@ This document defines the acceptance criteria for Phase 1 (Foundation).
 
 | # | Criterion | Status |
 |---|-----------|--------|
-| 1 | Project directory structure created | ✅ DONE |
-| 2 | `pyproject.toml` with dependency groups | ✅ DONE |
-| 3 | Global schema definitions (15+ schemas) | ✅ DONE |
-| 4 | Configuration system (YAML-based, env-aware) | ✅ DONE |
-| 5 | Database schema (PostgreSQL-compatible) | ✅ DONE |
-| 6 | Migration mechanism | 🔄 IN PROGRESS |
-| 7 | Unified logging system | ✅ DONE |
-| 8 | Test framework setup | 🔄 IN PROGRESS |
-| 9 | Documentation skeleton | ✅ DONE |
-| 10 | `Makefile` with commands | ✅ DONE |
-| 11 | `TARGET.md` | ✅ DONE |
-| 12 | `ROADMAP.md` | ✅ DONE |
-| 13 | `AGENTS.md` | ✅ DONE |
-| 14 | `docs/architecture/system_overview.md` | ✅ DONE |
-| 15 | `docs/architecture/module_boundaries.md` | ✅ DONE |
-| 16 | `docs/schemas/global_io_contract.md` | ✅ DONE |
-| 17 | `docs/runbooks/dev_setup.md` | ✅ DONE |
-| 18 | `infra/docker/` base files | ⏳ TODO |
-| 19 | Unit tests for schemas | ⏳ TODO |
-| 20 | Contract tests | ⏳ TODO |
+| 1 | Project directory structure created | 鉁?DONE |
+| 2 | `pyproject.toml` with dependency groups | 鉁?DONE |
+| 3 | Global schema definitions (15+ schemas) | 鉁?DONE |
+| 4 | Configuration system (YAML-based, env-aware) | 鉁?DONE |
+| 5 | Database schema (PostgreSQL-compatible) | 鉁?DONE |
+| 6 | Migration mechanism | 馃攧 IN PROGRESS |
+| 7 | Unified logging system | 鉁?DONE |
+| 8 | Test framework setup | 馃攧 IN PROGRESS |
+| 9 | Documentation skeleton | 鉁?DONE |
+| 10 | `Makefile` with commands | 鉁?DONE |
+| 11 | `TARGET.md` | 鉁?DONE |
+| 12 | `ROADMAP.md` | 鉁?DONE |
+| 13 | `AGENTS.md` | 鉁?DONE |
+| 14 | `docs/architecture/system_overview.md` | 鉁?DONE |
+| 15 | `docs/architecture/module_boundaries.md` | 鉁?DONE |
+| 16 | `docs/schemas/global_io_contract.md` | 鉁?DONE |
+| 17 | `docs/runbooks/dev_setup.md` | 鉁?DONE |
+| 18 | `infra/docker/` base files | 鈴?TODO |
+| 19 | Unit tests for schemas | 鈴?TODO |
+| 20 | Contract tests | 鈴?TODO |
 
 ## Verification Commands
 
@@ -33,13 +33,13 @@ After completing Phase 1, run these commands to verify:
 
 ```bash
 # 1. Check imports
-python -c "from ai_trading_tool.core.schemas import *; print('Schemas OK')"
-python -c "from ai_trading_tool.core.shared import get_config; print('Config OK')"
-python -c "from ai_trading_tool.core.shared.logging import get_logger; print('Logging OK')"
+python -c "from core.schemas import *; print('Schemas OK')"
+python -c "from core.shared import get_config; print('Config OK')"
+python -c "from core.shared.logging import get_logger; print('Logging OK')"
 
 # 2. Check config loading
 python -c "
-from ai_trading_tool.core.shared.config import ConfigLoader
+from core.shared.config import ConfigLoader
 cfg = ConfigLoader().load()
 print(f'Environment: {cfg.env.environment}')
 print(f'Database type: {cfg.database.type}')
@@ -47,7 +47,7 @@ print(f'Database type: {cfg.database.type}')
 
 # 3. Check schema validation
 python -c "
-from ai_trading_tool.core.schemas import MarketBar, TimeFrame
+from core.schemas import MarketBar, TimeFrame
 from datetime import datetime, timezone
 
 bar = MarketBar(
@@ -130,7 +130,7 @@ Create `tests/unit/test_schemas.py`:
 
 ```python
 import pytest
-from ai_trading_tool.core.schemas import MarketBar, TimeFrame
+from core.schemas import MarketBar, TimeFrame
 
 def test_market_bar_valid():
     bar = MarketBar(
@@ -168,7 +168,7 @@ Create `tests/contracts/test_global_io_contract.py`:
 def test_all_schemas_have_required_fields():
     """Verify all critical schemas have expected fields."""
     # This is a meta-test to ensure schemas are complete
-    from ai_trading_tool.core.schemas import (
+    from core.schemas import (
         MarketBar, EngineSignal, ArbitrationDecision,
         OrderRecord, AuditRecord
     )

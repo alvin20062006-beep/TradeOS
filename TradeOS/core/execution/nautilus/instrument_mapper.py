@@ -1,9 +1,7 @@
-"""
-Nautilus Instrument Mapper - 标的映射
+﻿"""
+Nautilus Instrument Mapper - ??????
 
-将本项目内部 symbol 格式映射到 Nautilus Instrument 对象。
-支持股票、加密货币等资产类型。
-"""
+????????? symbol ????????Nautilus Instrument ????????????????????????????"""
 
 from __future__ import annotations
 
@@ -21,19 +19,16 @@ try:
     NAUTILUS_AVAILABLE = True
 except ImportError:
     NAUTILUS_AVAILABLE = False
-    # 占位类型
+    # ??????
     InstrumentId = Symbol = Venue = Instrument = Equity = CryptoPerpetual = object
     Currency = object
 
 
 class InstrumentMapper:
-    """标的映射器
-    
-    负责：
-    - symbol -> InstrumentId 转换
-    - InstrumentId -> symbol 转换
-    - 创建 Nautilus Instrument 对象（回测用）
-    """
+    """????????    
+    ?????    - symbol -> InstrumentId ???
+    - InstrumentId -> symbol ???
+    - ??? Nautilus Instrument ???????????    """
     
     def __init__(self):
         self._cache: dict[str, Instrument] = {}
@@ -43,19 +38,19 @@ class InstrumentMapper:
         symbol: str,
         venue: Optional[str] = None,
     ) -> "InstrumentId":
-        """将本项目 symbol 转换为 Nautilus InstrumentId
+        """?????? symbol ?????Nautilus InstrumentId
         
         Args:
-            symbol: 标的代码，如 "AAPL", "BTCUSDT"
-            venue: 交易所，如 "NASDAQ", "BINANCE"
+            symbol: ????????? "AAPL", "BTCUSDT"
+            venue: ???????? "NASDAQ", "BINANCE"
             
         Returns:
-            InstrumentId: Nautilus 标的标识
+            InstrumentId: Nautilus ??????
         """
         if not NAUTILUS_AVAILABLE:
             raise RuntimeError("NautilusTrader not available")
         
-        # 默认 venue
+        # ??? venue
         if venue is None:
             venue = self._infer_venue(symbol)
         
@@ -65,7 +60,7 @@ class InstrumentMapper:
         )
     
     def from_instrument_id(self, instrument_id: "InstrumentId") -> tuple[str, str]:
-        """将 Nautilus InstrumentId 转换为本项目格式
+        """??Nautilus InstrumentId ????????????
         
         Returns:
             tuple: (symbol, venue)
@@ -76,14 +71,14 @@ class InstrumentMapper:
         )
     
     def _infer_venue(self, symbol: str) -> str:
-        """根据 symbol 推断 venue"""
+        """??? symbol ??? venue"""
         symbol_upper = symbol.upper()
         
-        # 加密货币常见后缀
+        # ????????????
         if any(suffix in symbol_upper for suffix in ["USDT", "USD", "BTC", "ETH"]):
             return "BINANCE"
         
-        # 默认股票
+        # ??????
         return "NASDAQ"
     
     def create_equity(
@@ -98,21 +93,17 @@ class InstrumentMapper:
         maker_fee: Decimal = Decimal("0.001"),
         taker_fee: Decimal = Decimal("0.001"),
     ) -> "Equity":
-        """创建股票 Instrument（回测用）
-        
+        """?????? Instrument????????        
         Args:
-            symbol: 股票代码
-            venue: 交易所
-            price_precision: 价格精度（小数位）
-            min_price: 最小价格（tick size）
-            lot_size: 手大小
-            margin_init: 初始保证金率
-            margin_maint: 维持保证金率
-            maker_fee: Maker 手续费率
-            taker_fee: Taker 手续费率
+            symbol: ??????
+            venue: ?????
+            price_precision: ??????????????            min_price: ????????tick size??            lot_size: ?????            margin_init: ?????????
+            margin_maint: ?????????
+            maker_fee: Maker ??????
+            taker_fee: Taker ??????
             
         Returns:
-            Equity: Nautilus Equity 对象
+            Equity: Nautilus Equity ???
         """
         if not NAUTILUS_AVAILABLE:
             raise RuntimeError("NautilusTrader not available")
@@ -121,7 +112,6 @@ class InstrumentMapper:
         
         instrument_id = self.to_instrument_id(symbol, venue)
         
-        # 默认值
         if min_price is None:
             min_price = Decimal("0.01")
         if lot_size is None:
@@ -142,7 +132,7 @@ class InstrumentMapper:
             taker_fee=taker_fee,
         )
         
-        # 缓存
+        # ???
         self._cache[symbol] = equity
         
         return equity
@@ -164,26 +154,21 @@ class InstrumentMapper:
         maker_fee: Decimal = Decimal("0.0002"),
         taker_fee: Decimal = Decimal("0.0005"),
     ) -> "CryptoPerpetual":
-        """创建加密货币永续合约 Instrument（回测用）
-        
+        """??????????????? Instrument????????        
         Args:
-            symbol: 交易对代码，如 "BTCUSDT"
-            venue: 交易所
-            base_currency: 基础货币
-            quote_currency: 计价货币
-            price_precision: 价格精度
-            size_precision: 数量精度
-            min_price: 最小价格
-            max_price: 最大价格
-            min_size: 最小数量
-            max_size: 最大数量
-            margin_init: 初始保证金率
-            margin_maint: 维持保证金率
-            maker_fee: Maker 手续费率
-            taker_fee: Taker 手续费率
+            symbol: ???????????"BTCUSDT"
+            venue: ?????
+            base_currency: ??????
+            quote_currency: ??????
+            price_precision: ??????
+            size_precision: ??????
+            min_price: ???????            max_price: ???????            min_size: ???????            max_size: ???????            margin_init: ?????????
+            margin_maint: ?????????
+            maker_fee: Maker ??????
+            taker_fee: Taker ??????
             
         Returns:
-            CryptoPerpetual: Nautilus CryptoPerpetual 对象
+            CryptoPerpetual: Nautilus CryptoPerpetual ???
         """
         if not NAUTILUS_AVAILABLE:
             raise RuntimeError("NautilusTrader not available")
@@ -193,7 +178,6 @@ class InstrumentMapper:
         
         instrument_id = self.to_instrument_id(symbol, venue)
         
-        # 默认值
         if min_price is None:
             min_price = Decimal("0.01")
         if max_price is None:
@@ -203,7 +187,7 @@ class InstrumentMapper:
         if max_size is None:
             max_size = Decimal("10000")
         
-        # 创建货币对象
+        # ?????????
         base = Currency.from_str(base_currency)
         quote = Currency.from_str(quote_currency)
         
@@ -234,15 +218,15 @@ class InstrumentMapper:
             ts_init=0,
         )
         
-        # 缓存
+        # ???
         self._cache[symbol] = crypto
         
         return crypto
     
     def get_cached(self, symbol: str) -> Optional["Instrument"]:
-        """获取缓存的 Instrument"""
+        """????????Instrument"""
         return self._cache.get(symbol)
     
     def clear_cache(self) -> None:
-        """清空缓存"""
+        """??????"""
         self._cache.clear()

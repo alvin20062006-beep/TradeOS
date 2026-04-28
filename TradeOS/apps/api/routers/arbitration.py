@@ -1,13 +1,12 @@
-"""
-apps/api/routers/arbitration.py — 仲裁层 API 端点
+﻿"""
+apps/api/routers/arbitration.py 鈥?浠茶灞?API 绔偣
 
-POST /arbitration/run        → 旧入口（消费 Phase 5 信号）
-POST /arbitration/run-portfolio → 新入口（消费 Phase 9 策略池）
-AI 通过 API DTO 接入，禁止直接绑定 ArbitrationDecision。
-"""
+POST /arbitration/run        鈫?鏃у叆鍙ｏ紙娑堣垂 Phase 5 淇″彿锛?POST /arbitration/run-portfolio 鈫?鏂板叆鍙ｏ紙娑堣垂 Phase 9 绛栫暐姹狅級
+AI 閫氳繃 API DTO 鎺ュ叆锛岀姝㈢洿鎺ョ粦瀹?ArbitrationDecision銆?"""
 
 from __future__ import annotations
 
+import logging
 from datetime import datetime
 
 from fastapi import APIRouter, Depends
@@ -22,6 +21,7 @@ from apps.dto.api.arbitration import (
 from apps.dto.api.common import ErrorResponse
 
 router = APIRouter(prefix="/arbitration", tags=["Arbitration"])
+logger = logging.getLogger(__name__)
 
 
 @router.post(
@@ -38,11 +38,8 @@ async def run_arbitration(
     user: User = Depends(require_suggest),
 ) -> ArbitrationResponse:
     """
-    旧入口仲裁（消费 Phase 5 信号）。
-
-    suggestion-only：只输出 ArbitrationDecision，不改 registry 真值。
-    AI 可通过此端点产生建议，建议结果写入 FeedbackRegistry（append-only）。
-    """
+    鏃у叆鍙ｄ徊瑁侊紙娑堣垂 Phase 5 淇″彿锛夈€?
+    suggestion-only锛氬彧杈撳嚭 ArbitrationDecision锛屼笉鏀?registry 鐪熷€笺€?    AI 鍙€氳繃姝ょ鐐逛骇鐢熷缓璁紝寤鸿缁撴灉鍐欏叆 FeedbackRegistry锛坅ppend-only锛夈€?    """
     decision = _call_arbitration_engine(req)
 
     _log_arbitration_feedback(user.id, req, decision)
@@ -64,11 +61,9 @@ async def run_portfolio_arbitration(
     user: User = Depends(require_suggest),
 ) -> ArbitrationResponse:
     """
-    新入口仲裁（消费 Phase 9 策略池）。
-
-    接收 StrategySignalBundle[] 序列化的请求体，
-    内部转换后调用 ArbitrationEngine.arbitrate_portfolio()。
-    """
+    鏂板叆鍙ｄ徊瑁侊紙娑堣垂 Phase 9 绛栫暐姹狅級銆?
+    鎺ユ敹 StrategySignalBundle[] 搴忓垪鍖栫殑璇锋眰浣擄紝
+    鍐呴儴杞崲鍚庤皟鐢?ArbitrationEngine.arbitrate_portfolio()銆?    """
     decision = _call_portfolio_arbitration(req)
 
     _log_portfolio_feedback(user.id, req, decision)
@@ -76,16 +71,16 @@ async def run_portfolio_arbitration(
     return _to_arb_response(decision, source="portfolio")
 
 
-# ── 内部调用 ────────────────────────────────────────────────
+# 鈹€鈹€ 鍐呴儴璋冪敤 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
 
 def _call_arbitration_engine(req: ArbitrationRunRequest):
-    """调用 Phase 6 ArbitrationEngine.arbitrate()。"""
+    """璋冪敤 Phase 6 ArbitrationEngine.arbitrate()銆?"""
     from core.arbitration import ArbitrationEngine
     from core.schemas import Direction, Regime, TechnicalSignal
 
     engine = ArbitrationEngine()
 
-    # 构建 Phase 5 TechnicalSignal（最小可用输入）
+    # 鏋勫缓 Phase 5 TechnicalSignal锛堟渶灏忓彲鐢ㄨ緭鍏ワ級
     # Direction enum values are lowercase ('long'), DTO uses uppercase ('LONG')
     dir_map = {"LONG": "long", "SHORT": "short", "FLAT": "flat"}
     direction = Direction(dir_map.get(req.direction, "flat"))
@@ -108,7 +103,7 @@ def _call_arbitration_engine(req: ArbitrationRunRequest):
 
 
 def _call_portfolio_arbitration(req: PortfolioArbitrationRequest):
-    """调用 Phase 10 ArbitrationEngine.arbitrate_portfolio()。"""
+    """璋冪敤 Phase 10 ArbitrationEngine.arbitrate_portfolio()銆?"""
     from core.arbitration import ArbitrationEngine
     from core.strategy_pool.schemas.arbitration_input import (
         ArbitrationInputBundle,
@@ -120,7 +115,6 @@ def _call_portfolio_arbitration(req: PortfolioArbitrationRequest):
     engine = ArbitrationEngine()
     ts = req.timestamp or datetime.utcnow()
 
-    # 构建 StrategySignalBundle[]（从 DTO 转换，不引用核心类型）
     proposals = []
     for sp in req.proposals:
         bundle = StrategySignalBundle(
@@ -163,12 +157,12 @@ def _call_portfolio_arbitration(req: PortfolioArbitrationRequest):
     return engine.arbitrate_portfolio(arb_in, timestamp=ts)
 
 
-# ── 转换为核心 → DTO ────────────────────────────────────────
+# 鈹€鈹€ 杞崲涓烘牳蹇?鈫?DTO 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
 
 def _to_arb_response(decision, source: str) -> ArbitrationResponse:
-    """核心 ArbitrationDecision → API ArbitrationResponse DTO。"""
-    # rules_applied: List[str]（规则名称列表）
-    # rationale: List[DecisionRationale]（信号理由列表）
+    """鏍稿績 ArbitrationDecision 鈫?API ArbitrationResponse DTO銆?"""
+    # rules_applied: List[str]锛堣鍒欏悕绉板垪琛級
+    # rationale: List[DecisionRationale]锛堜俊鍙风悊鐢卞垪琛級
     return ArbitrationResponse(
         ok=True,
         decision_id=decision.decision_id,
@@ -195,7 +189,7 @@ def _to_arb_response(decision, source: str) -> ArbitrationResponse:
     )
 
 
-# ── 审计日志 ────────────────────────────────────────────────
+# 鈹€鈹€ 瀹¤鏃ュ織 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
 
 def _log_arbitration_feedback(user_id: str, req: ArbitrationRunRequest, decision) -> None:
     try:
@@ -214,8 +208,8 @@ def _log_arbitration_feedback(user_id: str, req: ArbitrationRunRequest, decision
             },
             result="accepted",
         )
-    except Exception:
-        pass
+    except Exception as exc:
+        logger.warning("Failed to append arbitration auth audit", exc_info=True)
 
 
 def _log_portfolio_feedback(user_id: str, req: PortfolioArbitrationRequest, decision) -> None:
@@ -236,5 +230,5 @@ def _log_portfolio_feedback(user_id: str, req: PortfolioArbitrationRequest, deci
             },
             result="accepted",
         )
-    except Exception:
-        pass
+    except Exception as exc:
+        logger.warning("Failed to append portfolio arbitration auth audit", exc_info=True)

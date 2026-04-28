@@ -1,8 +1,8 @@
-"""
-Test Instrument Mapper - 鏍囩殑鏄犲皠鍣ㄥ姛鑳芥祴璇?
-楠岃瘉锛?- symbol -> InstrumentId 鏄犲皠
-- 涓嶅悓 venue 鏄犲皠閫昏緫
-- 闈炴硶 symbol / 缂哄け venue 鐨勯敊璇鐞?- Equity/CryptoPerpetual 鍒涘缓
+﻿"""
+Test Instrument Mapper - ????????????????????
+???????- symbol -> InstrumentId ?????
+- ?????venue ?????????
+- ?????symbol / ?????venue ???????????- Equity/CryptoPerpetual ?????
 """
 
 import pytest
@@ -16,30 +16,30 @@ from core.execution.nautilus import (
 
 @pytest.mark.skipif(not NAUTILUS_AVAILABLE, reason="NautilusTrader not installed")
 class TestInstrumentMapper:
-    """InstrumentMapper 鍔熻兘娴嬭瘯"""
+    """InstrumentMapper ?????????"""
     
     @pytest.fixture
     def mapper(self):
-        """鍒涘缓 InstrumentMapper fixture"""
+        """?????InstrumentMapper fixture"""
         return InstrumentMapper()
     
     def test_symbol_to_instrument_id_basic(self, mapper):
-        """娴嬭瘯鍩烘湰 symbol -> InstrumentId 鏄犲皠"""
+        """????????? symbol -> InstrumentId ?????"""
         instrument_id = mapper.to_instrument_id("AAPL", "NASDAQ")
         
         assert str(instrument_id.symbol) == "AAPL"
         assert str(instrument_id.venue) == "NASDAQ"
     
     def test_symbol_to_instrument_id_crypto(self, mapper):
-        """娴嬭瘯鍔犲瘑璐у竵 symbol 鏄犲皠"""
+        """????????????? symbol ?????"""
         instrument_id = mapper.to_instrument_id("BTCUSDT", "BINANCE")
         
         assert str(instrument_id.symbol) == "BTCUSDT"
         assert str(instrument_id.venue) == "BINANCE"
     
     def test_infer_venue_for_crypto(self, mapper):
-        """娴嬭瘯鍔犲瘑璐у竵 venue 鑷姩鎺ㄦ柇"""
-        # USDT 鍚庣紑搴旀帹鏂负 BINANCE
+        """????????????? venue ?????????"""
+        # USDT ?????????????? BINANCE
         instrument_id = mapper.to_instrument_id("BTCUSDT")
         assert str(instrument_id.venue) == "BINANCE"
         
@@ -47,8 +47,8 @@ class TestInstrumentMapper:
         assert str(instrument_id.venue) == "BINANCE"
     
     def test_infer_venue_for_stock(self, mapper):
-        """娴嬭瘯鑲＄エ venue 鑷姩鎺ㄦ柇"""
-        # 鏅€氳偂绁ㄤ唬鐮佸簲鎺ㄦ柇涓?NASDAQ
+        """????????? venue ?????????"""
+        # ???????????????????????NASDAQ
         instrument_id = mapper.to_instrument_id("AAPL")
         assert str(instrument_id.venue) == "NASDAQ"
         
@@ -56,7 +56,7 @@ class TestInstrumentMapper:
         assert str(instrument_id.venue) == "NASDAQ"
     
     def test_from_instrument_id(self, mapper):
-        """娴嬭瘯 InstrumentId -> symbol/venue 杞崲"""
+        """?????InstrumentId -> symbol/venue ?????"""
         instrument_id = mapper.to_instrument_id("MSFT", "NYSE")
         symbol, venue = mapper.from_instrument_id(instrument_id)
         
@@ -64,7 +64,7 @@ class TestInstrumentMapper:
         assert venue == "NYSE"
     
     def test_create_equity_basic(self, mapper):
-        """娴嬭瘯鍒涘缓 Equity 鍩烘湰鍔熻兘"""
+        """????????? Equity ?????????"""
         equity = mapper.create_equity("AAPL", "NASDAQ")
         
         assert str(equity.id.symbol) == "AAPL"
@@ -72,7 +72,7 @@ class TestInstrumentMapper:
         assert equity.price_precision == 2
     
     def test_create_equity_with_custom_params(self, mapper):
-        """娴嬭瘯鍒涘缓 Equity 鑷畾涔夊弬鏁?""
+        """????????? Equity ???????????"""
         equity = mapper.create_equity(
             symbol="TSLA",
             venue="NASDAQ",
@@ -90,7 +90,7 @@ class TestInstrumentMapper:
         assert equity.taker_fee == Decimal("0.0005")
     
     def test_create_crypto_perpetual_basic(self, mapper):
-        """娴嬭瘯鍒涘缓 CryptoPerpetual 鍩烘湰鍔熻兘"""
+        """????????? CryptoPerpetual ?????????"""
         crypto = mapper.create_crypto_perpetual("BTCUSDT", "BINANCE")
         
         assert str(crypto.id.symbol) == "BTCUSDT"
@@ -99,7 +99,7 @@ class TestInstrumentMapper:
         assert crypto.size_precision == 6
     
     def test_create_crypto_perpetual_with_margin(self, mapper):
-        """娴嬭瘯鍒涘缓 CryptoPerpetual 淇濊瘉閲戝弬鏁?""
+        """????????? CryptoPerpetual ???????????"""
         crypto = mapper.create_crypto_perpetual(
             symbol="ETHUSDT",
             venue="BINANCE",
@@ -116,20 +116,20 @@ class TestInstrumentMapper:
         assert crypto.maker_fee == Decimal("0.0002")
     
     def test_cache_mechanism(self, mapper):
-        """娴嬭瘯 instrument 缂撳瓨鏈哄埗"""
-        # 鍒涘缓 equity
+        """?????instrument ?????????"""
+        # ?????equity
         equity1 = mapper.create_equity("AAPL", "NASDAQ")
         
-        # 浠庣紦瀛樿幏鍙?        cached = mapper.get_cached("AAPL")
+        cached = mapper.get_cached("AAPL")
         assert cached is equity1
         
-        # 鍒涘缓 crypto
+        # ?????crypto
         crypto = mapper.create_crypto_perpetual("BTCUSDT", "BINANCE")
         cached_crypto = mapper.get_cached("BTCUSDT")
         assert cached_crypto is crypto
     
     def test_clear_cache(self, mapper):
-        """娴嬭瘯娓呯┖缂撳瓨"""
+        """??????????????"""
         mapper.create_equity("AAPL", "NASDAQ")
         assert mapper.get_cached("AAPL") is not None
         
@@ -137,7 +137,7 @@ class TestInstrumentMapper:
         assert mapper.get_cached("AAPL") is None
     
     def test_different_symbols_same_mapper(self, mapper):
-        """娴嬭瘯鍚屼竴 mapper 澶勭悊澶氫釜 symbol"""
+        """????????? mapper ????????? symbol"""
         aapl = mapper.create_equity("AAPL", "NASDAQ")
         tsla = mapper.create_equity("TSLA", "NASDAQ")
         btc = mapper.create_crypto_perpetual("BTCUSDT", "BINANCE")
@@ -148,18 +148,18 @@ class TestInstrumentMapper:
 
 
 class TestInstrumentMapperWithoutNautilus:
-    """Nautilus 鏈畨瑁呮椂鐨勬祴璇?""
+    """Nautilus ????????????????"""
     
     def test_nautilus_not_available(self):
-        """娴嬭瘯 NAUTILUS_AVAILABLE 鏍囧織"""
-        # 杩欎釜娴嬭瘯鍦?Nautilus 鏈畨瑁呮椂搴旇閫氳繃
+        """?????NAUTILUS_AVAILABLE ?????"""
+        # ???????????Nautilus ??????????????????
         if not NAUTILUS_AVAILABLE:
             assert NAUTILUS_AVAILABLE is False
         else:
             pytest.skip("Nautilus is installed")
     
     def test_runtime_error_when_nautilus_missing(self):
-        """娴嬭瘯 Nautilus 缂哄け鏃舵姏鍑?RuntimeError"""
+        """?????Nautilus ???????????RuntimeError"""
         if NAUTILUS_AVAILABLE:
             pytest.skip("Nautilus is installed")
         

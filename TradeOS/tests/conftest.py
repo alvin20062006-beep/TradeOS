@@ -13,6 +13,45 @@ project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
 
+class FakeModel:
+    """Pickle-friendly model fixture for research adapter tests."""
+
+    def __init__(self, predictions=None):
+        self.predictions = predictions
+
+    def predict(self, features):
+        if self.predictions is not None:
+            return self.predictions
+        return [0.0 for _ in range(len(features))]
+
+
+def pytest_collection_modifyitems(config, items):
+    """Apply coarse test-layer markers without requiring every legacy file edit."""
+    release_paths = {
+        "tests/unit/test_desktop_runtime.py",
+        "tests/unit/test_web_console_routes.py",
+        "tests/integration/test_full_live_pipeline.py",
+    }
+    research_optional_names = {
+        "test_backtest_research_pipeline.py",
+        "test_portfolio_optimizer.py",
+        "test_optimizer.py",
+    }
+
+    for item in items:
+        rel_path = item.path.relative_to(project_root).as_posix()
+        name = item.path.name
+
+        if rel_path.startswith("tests/integration/"):
+            item.add_marker(pytest.mark.integration)
+        if name in research_optional_names:
+            item.add_marker(pytest.mark.research_optional)
+        if "legacy" in rel_path or "apps/console" in rel_path:
+            item.add_marker(pytest.mark.legacy)
+        if rel_path in release_paths:
+            item.add_marker(pytest.mark.release)
+
+
 @pytest.fixture(scope="session")
 def project_root_path() -> Path:
     return project_root

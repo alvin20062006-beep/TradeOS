@@ -179,7 +179,7 @@ class RiskEngine:
             )
 
         # ── 2. bias = no_trade / exit / reduce ─────────────
-        bias = getattr(decision, "bias", None) or "no_trade"
+        bias = self._canonical_bias(decision)
         if bias in ("no_trade", "hold_bias"):
             return self._zero_plan(
                 decision_id=decision.decision_id,
@@ -187,7 +187,7 @@ class RiskEngine:
                 bias=bias,
                 equity=equity,
                 current_price=current_price,
-                reason=getattr(decision, "no_trade_reason", None) or "arbitration veto",
+                reason=getattr(decision, "no_trade_reason", None) or "arbitration_no_trade",
                 start=start,
             )
 
@@ -273,6 +273,17 @@ class RiskEngine:
             bias=bias,
             existing_position_qty=existing_position_qty,
         )
+        if sizing_result["qty"] <= 0:
+            zero_reason = sizing_result.get("rationale") or "sizing_zero_quantity"
+            return self._zero_plan(
+                decision_id=decision.decision_id,
+                symbol=symbol,
+                bias=bias,
+                equity=equity,
+                current_price=market_context.current_price,
+                reason=f"sizing_zero_quantity:{zero_reason}",
+                start=start,
+            )
 
         # ── 4b. exit / reduce 数量修正 ─────────────────
         # sizing chain 计算的是"开仓规模（目标持仓）"。
@@ -289,7 +300,7 @@ class RiskEngine:
             sizing_result["qty"] = sizing_qty
 
         # ── 5. 风控过滤器链 ──────────────────────────────
-        filtered_qty, risk_adjustments, limit_checks, veto = self._run_filters(
+        filtered_qty, risk_adjustments, limit_checks, veto, veto_reason = self._run_filters(
             qty=sizing_qty,
             direction_sign=direction_sign,
             symbol=symbol,
@@ -330,7 +341,10 @@ class RiskEngine:
             risk_adjustments=risk_adjustments,
             limit_checks=limit_checks,
             veto_triggered=veto,
-            veto_reasons=[r for r in (getattr(decision, "no_trade_reason", None) or "").split(";") if r],
+            veto_reasons=self._collect_veto_reasons(
+                decision_reason=getattr(decision, "no_trade_reason", None),
+                veto_reason=veto_reason,
+            ),
             sizing_rationale=sizing_result["rationale"],
             exec_action=exec_action,
             portfolio_snapshot_equity=equity,
@@ -352,6 +366,27 @@ class RiskEngine:
         position_plan.sizing_rationale += f" (risk_engine_latency={latency_ms:.2f}ms)"
 
         return position_plan
+
+    @staticmethod
+    def _canonical_bias(decision: ArbitrationDecision) -> str:
+        bias = getattr(decision, "bias", None)
+        if bias:
+            return bias
+        target = getattr(decision, "target_direction", None) or getattr(decision, "direction", None)
+        if target == Direction.LONG or str(target).upper() == "LONG":
+            return "long_bias"
+        if target == Direction.SHORT or str(target).upper() == "SHORT":
+            return "short_bias"
+        return "no_trade"
+
+    @staticmethod
+    def _collect_veto_reasons(*, decision_reason: Optional[str], veto_reason: Optional[str]) -> List[str]:
+        reasons: List[str] = []
+        if decision_reason:
+            reasons.extend([item for item in decision_reason.split(";") if item])
+        if veto_reason and veto_reason not in reasons:
+            reasons.append(veto_reason)
+        return reasons
 
     # ─────────────────────────────────────────────────────────
     # Sizing chain
@@ -437,20 +472,21 @@ class RiskEngine:
         avg_entry_price: float,
         daily_loss_pct: float,
         current_drawdown_pct: float,
-    ) -> tuple[float, List[RiskAdjustment], List[LimitCheck], bool]:
+    ) -> tuple[float, List[RiskAdjustment], List[LimitCheck], bool, Optional[str]]:
         """
         执行风控过滤器链。
 
         任意过滤器触发 veto → final_quantity = 0
         """
         if qty <= 0:
-            return 0.0, [], [], True
+            return 0.0, [], [], True, "sizing_zero_quantity"
 
         original_qty = qty  # 链入口的原始数量，用于 LimitCheck.raw_qty
         current_qty = qty
         risk_adjustments: List[RiskAdjustment] = []
         limit_checks: List[LimitCheck] = []
         veto = False
+        veto_reason: Optional[str] = None
 
         for f in self._filters:
             result: FilterResult = f.apply(
@@ -504,8 +540,13 @@ class RiskEngine:
 
             if not result.passed:
                 veto = True
+                veto_reason = result.details or f"{f.name} veto"
 
-        return current_qty, risk_adjustments, limit_checks, veto
+        if current_qty <= 0 and veto_reason is None:
+            veto = True
+            veto_reason = "sizing_zero_quantity"
+
+        return current_qty, risk_adjustments, limit_checks, veto, veto_reason
 
     # ─────────────────────────────────────────────────────────
     # Zero plan

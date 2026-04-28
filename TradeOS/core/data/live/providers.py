@@ -142,3 +142,31 @@ class FredMacroProvider:
         if not payload:
             raise ValueError("No macro indicators fetched from FRED")
         return ProviderFetchResult(provider=self.name, payload=payload, notes=notes)
+
+    def fetch_vix(self, retries: int = 2) -> dict[str, Any]:
+        last_error: Optional[str] = None
+        for attempt in range(retries + 1):
+            try:
+                result = self.fetch_indicator("VIXCLS", lookback_rows=1)
+                frame = result.payload
+                latest = frame.iloc[-1]
+                return {
+                    "value": float(latest["value"]),
+                    "data_status": "ok",
+                    "source": self.name,
+                    "timestamp": latest["date"].to_pydatetime() if hasattr(latest["date"], "to_pydatetime") else latest["date"],
+                    "source_error": None,
+                    "fallback_assumption": None,
+                }
+            except Exception as exc:
+                last_error = str(exc)
+                if attempt >= retries:
+                    break
+        return {
+            "value": None,
+            "data_status": "degraded",
+            "source": self.name,
+            "timestamp": None,
+            "source_error": last_error,
+            "fallback_assumption": "macro_engine operates without explicit VIX input when FRED VIX is unavailable",
+        }

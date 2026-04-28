@@ -3,12 +3,22 @@ tests.unit.test_optimizer
 ==========================
 """
 
+import importlib.util
 import numpy as np
 import pandas as pd
 import pytest
 
+HAS_CVXPY = importlib.util.find_spec("cvxpy") is not None
+pytestmark = [
+    pytest.mark.research_optional,
+    pytest.mark.skipif(not HAS_CVXPY, reason="research optimizer optional dependency is not installed"),
+]
+
 from core.research.portfolio.constraints import build_constraint
-from core.research.portfolio.optimizer import PortfolioOptimizer
+if HAS_CVXPY:
+    from core.research.portfolio.optimizer import PortfolioOptimizer
+else:
+    PortfolioOptimizer = None
 from core.research.portfolio.schema import (
     ConstraintConfig,
     OptimizationRequest,

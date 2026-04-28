@@ -12,7 +12,7 @@ from sqlalchemy import pool
 from alembic import context
 
 # Import models for autogenerate support
-# from ai_trading_tool.core.models import Base
+# from core.models import Base
 # For now, we use SQL scripts directly
 
 # this is the Alembic Config object

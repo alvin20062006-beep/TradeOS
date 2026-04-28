@@ -1,4 +1,4 @@
-# Global I/O Contract
+﻿# Global I/O Contract
 
 This document defines the canonical input/output schemas for all modules. All modules MUST use these schemas. No ad-hoc dictionaries.
 
@@ -9,7 +9,7 @@ All schemas are defined in: `core/schemas/__init__.py`
 ## Import Pattern
 
 ```python
-from ai_trading_tool.core.schemas import (
+from core.schemas import (
     # Market data
     MarketBar,
     MarketTick,
@@ -211,7 +211,7 @@ EngineSignal(
 )
 ```
 
-#### ChanSignal (缠论)
+#### ChanSignal (缂犺)
 **Purpose**: Chan theory signal
 ```python
 ChanSignal(
@@ -221,7 +221,7 @@ ChanSignal(
     
     # Chan-specific
     fractal_level: str | None,
-    笔_status: str | None,
+    绗擾status: str | None,
     segment_status: str | None,
     zhongshu_status: str | None,
     divergence: str | None,
@@ -537,7 +537,7 @@ ExperimentRecord(
 
 ```python
 from pydantic import ValidationError
-from ai_trading_tool.core.schemas import MarketBar, TimeFrame
+from core.schemas import MarketBar, TimeFrame
 
 try:
     bar = MarketBar(
@@ -568,7 +568,7 @@ bar = MarketBar.model_validate_json(bar_json)
 
 > **CRITICAL**: All module inputs and outputs MUST use schemas from `core/schemas/`. Do NOT create ad-hoc dictionaries.
 
-### ❌ Forbidden
+### 鉂?Forbidden
 ```python
 # Don't do this
 def get_signal():
@@ -578,10 +578,10 @@ def get_signal():
     }
 ```
 
-### ✅ Correct
+### 鉁?Correct
 ```python
 # Do this
-from ai_trading_tool.core.schemas import EngineSignal, Direction
+from core.schemas import EngineSignal, Direction
 
 def get_signal() -> EngineSignal:
     return EngineSignal(

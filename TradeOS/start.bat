@@ -16,11 +16,11 @@ if errorlevel 1 (
     exit /b 1
 )
 
-python -c "import fastapi, uvicorn, yfinance, numpy" >nul 2>&1
+python -c "import fastapi, uvicorn, yfinance, numpy, webview" >nul 2>&1
 if errorlevel 1 (
     echo [WARN] Missing packages detected. Installing requirements-local.txt ...
     python -m pip install -r requirements-local.txt
 )
 
-echo [START] Launching API + Web Console ...
+echo [START] Launching TradeOS desktop shell ...
 python run.py start

@@ -1,13 +1,13 @@
-"""
-apps/api/routers/auth.py — 权限与审计只读端点
+﻿"""
+apps/api/routers/auth.py 鈥?鏉冮檺涓庡璁″彧璇荤鐐?
 
-GET  /auth/audit              — 查询审计轨迹（只读）
-GET  /auth/users              — 列出用户（只读）
-GET  /auth/users/{user_id}    — 查询单个用户（只读）
+GET  /auth/audit              鈥?鏌ヨ瀹¤杞ㄨ抗锛堝彧璇伙級
+GET  /auth/users              鈥?鍒楀嚭鐢ㄦ埛锛堝彧璇伙級
+GET  /auth/users/{user_id}    鈥?鏌ヨ鍗曚釜鐢ㄦ埛锛堝彧璇伙級
 
-约束：
-- 所有端点只读，不允许修改 / 删除历史记录
-- audit_entries 表 append-only，Query AuditEntry 禁止任何写操作
+绾︽潫锛?
+- 鎵€鏈夌鐐瑰彧璇伙紝涓嶅厑璁镐慨鏀?/ 鍒犻櫎鍘嗗彶璁板綍
+- audit_entries 琛?append-only锛孮uery AuditEntry 绂佹浠讳綍鍐欐搷浣?
 """
 
 from __future__ import annotations
@@ -25,10 +25,10 @@ from apps.dto.api.common import ErrorResponse
 router = APIRouter(prefix="/auth", tags=["Auth"])
 
 
-# ── DTO ─────────────────────────────────────────────────────
+# 鈹€鈹€ DTO 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
 
 class AuditEntryView(BaseModel):
-    """AuditEntry 只读视图（与核心 AuditEntry 完全解耦）。"""
+    """AuditEntry 鍙瑙嗗浘锛堜笌鏍稿績 AuditEntry 瀹屽叏瑙ｈ€︼級銆?"""
 
     id: str
     timestamp: datetime
@@ -41,7 +41,7 @@ class AuditEntryView(BaseModel):
 
 
 class AuditTrailResponse(BaseModel):
-    """GET /auth/audit 响应。"""
+    """GET /auth/audit 鍝嶅簲銆?"""
 
     ok: bool = True
     entries: list[AuditEntryView]
@@ -50,7 +50,7 @@ class AuditTrailResponse(BaseModel):
 
 
 class UserView(BaseModel):
-    """User 只读视图（不暴露密码等敏感字段）。"""
+    """User 鍙瑙嗗浘锛堜笉鏆撮湶瀵嗙爜绛夋晱鎰熷瓧娈碉級銆?"""
 
     id: str
     username: str
@@ -60,13 +60,13 @@ class UserView(BaseModel):
 
 
 class UserListResponse(BaseModel):
-    """GET /auth/users 响应。"""
+    """GET /auth/users 鍝嶅簲銆?"""
 
     ok: bool = True
     users: list[UserView]
 
 
-# ── 端点 ─────────────────────────────────────────────────────
+# 鈹€鈹€ 绔偣 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
 
 @router.get(
     "/audit",
@@ -78,15 +78,15 @@ class UserListResponse(BaseModel):
 )
 async def get_audit_trail(
     limit: int = Query(default=100, ge=1, le=500),
-    user_id: Optional[str] = Query(default=None, description="用户 ID 筛选"),
-    resource: Optional[str] = Query(default=None, description="资源类型筛选"),
+    user_id: Optional[str] = Query(default=None, description="User ID filter"),
+    resource: Optional[str] = Query(default=None, description="Resource filter"),
     _: User = require_read,
 ) -> AuditTrailResponse:
     """
-    查询操作审计轨迹（只读）。
+    鏌ヨ鎿嶄綔瀹¤杞ㄨ抗锛堝彧璇伙級銆?
 
-    禁止任何写操作（PUT / DELETE / PATCH）。
-    append-only 语义保证历史不可篡改。
+    绂佹浠讳綍鍐欐搷浣滐紙PUT / DELETE / PATCH锛夈€?
+    append-only 璇箟淇濊瘉鍘嗗彶涓嶅彲绡℃敼銆?
     """
     auth = get_auth_service()
     entries = auth.query_audit(
@@ -128,7 +128,7 @@ async def get_audit_trail(
 async def list_users(
     _: User = require_read,
 ) -> UserListResponse:
-    """列出所有活跃用户（只读）。"""
+    """鍒楀嚭鎵€鏈夋椿璺冪敤鎴凤紙鍙锛夈€?"""
     auth = get_auth_service()
     users = auth.list_users()
 
@@ -160,7 +160,7 @@ async def get_user(
     user_id: str,
     _: User = require_read,
 ) -> UserView:
-    """查询单个用户信息（只读）。"""
+    """鏌ヨ鍗曚釜鐢ㄦ埛淇℃伅锛堝彧璇伙級銆?"""
     auth = get_auth_service()
     user = auth.get_user(user_id)
     if user is None:

@@ -5,7 +5,6 @@ from core.research.portfolio.schema import (
     OptimizationRequest,
     OptimizationResult,
 )
-from core.research.portfolio.optimizer import PortfolioOptimizer
 
 __all__ = [
     "ConstraintConfig",
@@ -13,3 +12,12 @@ __all__ = [
     "OptimizationResult",
     "PortfolioOptimizer",
 ]
+
+
+def __getattr__(name: str):
+    """Load the cvxpy-backed optimizer only when it is explicitly requested."""
+    if name == "PortfolioOptimizer":
+        from core.research.portfolio.optimizer import PortfolioOptimizer
+
+        return PortfolioOptimizer
+    raise AttributeError(name)

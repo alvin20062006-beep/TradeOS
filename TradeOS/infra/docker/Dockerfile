@@ -1,4 +1,4 @@
-# AI Trading Tool Dockerfile
+# TradeOS Dockerfile
 FROM python:3.10-slim AS base
 
 ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1

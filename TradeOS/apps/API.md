@@ -1,129 +1,53 @@
-# 产品化层 API 参考
+# TradeOS API Reference
 
-**版本**: 1.0.0  
-**Base URL**: `http://localhost:8000`  
-**前缀**: 无（health/version/system）或 `/api/v1`（业务端点）
+Default product users should start TradeOS from the desktop shell and do not need to know API paths or localhost ports. This document is for developers and the Diagnostics / Advanced API page.
 
----
+## Runtime Surfaces
 
-## 端点清单
+| Surface | Status | Notes |
+|---|---|---|
+| TradeOS desktop shell | Default | Starts embedded FastAPI and opens the in-app console window. |
+| `/console/` | Developer/local console | Served by FastAPI; used inside the desktop shell. |
+| Diagnostics / Advanced API | Advanced | Raw JSON templates, response viewer, curl copy, and request history. |
+| `apps/console/` | Legacy fallback | Old Streamlit console; not the default product entry. |
 
-### 1. 系统端点（无前缀）
+## Core Endpoints
 
-| 方法 | 路径 | 说明 | 权限 |
-|------|------|------|------|
-| GET | `/health` | 健康检查 | 无 |
-| GET | `/version` | 系统版本 | 无 |
-| GET | `/system/status` | 统一状态面板（含模块就绪探测） | 无 |
-| GET | `/system/modules` | Phase 1-10 模块就绪探测 | 无 |
+| Method | Path | Purpose |
+|---|---|---|
+| GET | `/health` | Health check |
+| GET | `/version` | Version |
+| GET | `/system/status` | Runtime status |
+| GET | `/system/modules` | Phase 1-10 module status |
+| GET | `/api/v1/data-sources/profiles` | List local data source profiles |
+| POST | `/api/v1/data-sources/profiles` | Save a local data source profile |
+| POST | `/api/v1/data-sources/test` | Test one provider; placeholder providers never report success |
+| GET | `/api/v1/data-sources/capabilities` | REAL / PROXY / PLACEHOLDER / UNAVAILABLE capability map |
+| POST | `/api/v1/analysis/run-live` | Run six-module live analysis |
+| POST | `/api/v1/pipeline/run-live` | Run full TradeOS live loop |
+| POST | `/api/v1/pipeline/run-full` | Legacy DTO orchestration path |
+| POST | `/api/v1/arbitration/run` | Single-symbol arbitration |
+| POST | `/api/v1/arbitration/run-portfolio` | Strategy Pool to Arbitration bridge |
+| POST | `/api/v1/risk/calculate` | Risk calculation |
+| POST | `/api/v1/strategy-pool/propose` | Strategy Pool proposal |
+| GET | `/api/v1/audit/decisions` | Append-only decision audit |
+| GET | `/api/v1/audit/risk` | Append-only risk audit |
+| GET | `/api/v1/audit/feedback` | Feedback audit |
+| POST | `/api/v1/audit/feedback/tasks` | Submit feedback scan task |
+| GET | `/api/v1/audit/feedback/tasks/{task_id}` | Read feedback task result |
 
-### 2. 分析端点
-
-| 方法 | 路径 | 说明 | 权限 |
-|------|------|------|------|
-| POST | `/api/v1/analysis/run` | 触发 Phase 5 分析 | suggest |
-
-### 3. 仲裁端点
-
-| 方法 | 路径 | 说明 | 权限 |
-|------|------|------|------|
-| POST | `/api/v1/arbitration/run` | 旧入口仲裁（Phase 5 信号） | suggest |
-| POST | `/api/v1/arbitration/run-portfolio` | 新入口仲裁（Phase 9 策略池） | suggest |
-
-### 4. 风控端点
-
-| 方法 | 路径 | 说明 | 权限 |
-|------|------|------|------|
-| POST | `/api/v1/risk/calculate` | Phase 7 风控计算 | suggest |
-
-### 5. 审计端点
-
-| 方法 | 路径 | 说明 | 权限 |
-|------|------|------|------|
-| GET | `/api/v1/audit/decisions` | 查询决策历史 | read |
-| GET | `/api/v1/audit/risk` | 查询风控审计历史 | read |
-| GET | `/api/v1/audit/feedback` | 查询 Feedback 历史 | read |
-| POST | `/api/v1/audit/feedback/tasks` | 提交 Feedback 扫描任务（task-style） | task |
-| GET | `/api/v1/audit/feedback/tasks/{task_id}` | 查询扫描任务结果 | read |
-
-### 6. 策略池端点
-
-| 方法 | 路径 | 说明 | 权限 |
-|------|------|------|------|
-| POST | `/api/v1/strategy-pool/propose` | 策略池提案（Phase 9 → Phase 6） | suggest |
-
-### 7. 全链路编排端点
-
-| 方法 | 路径 | 说明 | 权限 |
-|------|------|------|------|
-| POST | `/api/v1/pipeline/run-full` | 串联 Phase 5→6→7 | suggest |
-
-### 8. 权限与审计端点
-
-| 方法 | 路径 | 说明 | 权限 |
-|------|------|------|------|
-| GET | `/api/v1/auth/users` | 查询用户列表 | read |
-| GET | `/api/v1/auth/audit` | 查询操作审计轨迹 | read |
-
----
-
-## 权限体系
-
-| 角色 | read | suggest | task | review |
-|------|:----:|:-------:|:----:|:------:|
-| viewer | ✅ | ❌ | ❌ | ❌ |
-| operator | ✅ | ✅ | ✅ | ❌ |
-| admin | ✅ | ✅ | ✅ | ✅ |
-
-- **dev 模式**: `APP_AUTH_ENABLED=false`，所有请求默认 operator 角色
-- **prod 模式**: `APP_AUTH_ENABLED=true`，需传 `X-User-ID` header
-
----
-
-## Task-Style 端点语义
-
-`POST /api/v1/audit/feedback/tasks` 是操作型端点：
-
-```bash
-# 1. 提交任务
-curl -X POST http://localhost:8000/api/v1/audit/feedback/tasks \
-  -H "Content-Type: application/json" \
-  -d '{"feedback_type": "loss_amplification", "symbol": "AAPL"}'
-# → {"ok": true, "task_id": "task-abc123", "status": "accepted", ...}
-
-# 2. 轮询结果
-curl http://localhost:8000/api/v1/audit/feedback/tasks/task-abc123
-# → {"task_id": "task-abc123", "status": "done", "feedback_count": 1, ...}
-```
-
----
-
-## 错误格式
-
-所有端点错误响应统一为：
+## Live Pipeline Request
 
 ```json
 {
-  "ok": false,
-  "error": {
-    "error": "error_type_code",
-    "message": "Human readable message",
-    "detail": {},
-    "request_id": "optional-trace-id"
-  }
+  "symbol": "AAPL",
+  "market_type": "equity",
+  "timeframe": "1d",
+  "lookback": 90,
+  "profile_id": "default-live",
+  "news_limit": 6
 }
 ```
 
-HTTP 状态码：401（未认证）、403（权限不足）、404（资源不存在）、422（参数校验失败）
+The response includes Data Summary, Six Modules, Arbitration Decision, Risk Plan, Execution Simulation, Audit Records, and Feedback Suggestions. Module cards expose `coverage_status` so proxy and placeholder boundaries are visible to the frontend.
 
----
-
-## 写权限约束
-
-| 可写 | 不可写 |
-|------|--------|
-| ✅ POST /analysis/run → 输出 AnalysisSignal | ❌ 修改 Phase 1-4 registry 真值 |
-| ✅ POST /arbitration/* → 输出 ArbitrationDecision | ❌ 删除历史 DecisionRecord |
-| ✅ POST /risk/calculate → 输出 PositionPlan | ❌ 修改核心算法 / 风控阈值 |
-| ✅ POST /audit/feedback/tasks → append-only | ❌ AI 直写 registry |
-| ✅ POST /strategy-pool/propose → suggestion-only | ❌ 前端耦合核心内部对象 |

@@ -572,6 +572,27 @@ class ArbitrationDecision(BaseModel):
         return self.bias == "no_trade" or not self.entry_permission
 
 
+class TradingSuggestion(BaseModel):
+    """Second-layer candidate trade that never bypasses official RiskEngine output."""
+
+    suggestion_id: str = Field(..., description="Unique suggestion ID")
+    symbol: str = Field(..., description="Trading symbol")
+    direction: str = Field(..., description="long | short | neutral")
+    grade: str = Field(..., description="official | trial | watch")
+    confidence: float = Field(0.0, ge=0.0, le=1.0)
+    reason: str = Field("", description="Primary reason for the suggestion")
+    supporting_signals: list[str] = Field(default_factory=list)
+    opposing_signals: list[str] = Field(default_factory=list)
+    suggested_action: str = Field("", description="What the operator should do next")
+    entry_zone: Optional[str] = Field(None, description="Entry area or reference zone")
+    invalidation_level: Optional[str] = Field(None, description="What invalidates the idea")
+    stop_reference: Optional[str] = Field(None, description="Risk stop reference")
+    take_profit_reference: Optional[str] = Field(None, description="Take-profit reference")
+    risk_note: str = Field("", description="Risk note for the operator")
+    is_executable: bool = Field(False, description="True only when the official chain passed risk")
+    metadata: dict = Field(default_factory=dict)
+
+
 # ─────────────────────────────────────────────────────────────
 # RISK SCHEMAS
 # ─────────────────────────────────────────────────────────────

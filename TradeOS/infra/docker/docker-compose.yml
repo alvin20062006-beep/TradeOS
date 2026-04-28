@@ -1,42 +1,24 @@
-version: '3.8'
+version: "3.8"
 
 services:
-  # API Server
-  api:
+  tradeos:
     build:
-      context: ..
-      dockerfile: infra/docker/Dockerfile
-    image: ai-trading-tool:latest
-    container_name: ai-trading-tool-api
+      context: ../..
+      dockerfile: TradeOS/infra/docker/Dockerfile
+    image: tradeos:latest
+    container_name: tradeos-api
     ports:
       - "8000:8000"
     env_file:
-      - ../.env
+      - ../../.env
     environment:
       - APP_ENV=${APP_ENV:-prod}
       - APP_API_HOST=0.0.0.0
       - APP_API_PORT=8000
     volumes:
-      - ai-trading-data:/app/data
-    restart: unless-stopped
-
-  # Streamlit Console
-  console:
-    build:
-      context: ..
-      dockerfile: infra/docker/Dockerfile
-    image: ai-trading-tool:latest
-    container_name: ai-trading-tool-console
-    ports:
-      - "8501:8501"
-    env_file:
-      - ../.env
-    environment:
-      - APP_ENV=${APP_ENV:-prod}
-    command: streamlit run apps/console/main.py --server.port 8501 --server.address 0.0.0.0
-    depends_on:
-      - api
+      - tradeos-data:/app/data
     restart: unless-stopped
 
 volumes:
-  ai-trading-data:
+  tradeos-data:
+

@@ -1,17 +1,15 @@
-"""
-apps/api/routers/pipeline.py — 全链路编排 API 端点
+﻿"""
+apps/api/routers/pipeline.py 鈥?鍏ㄩ摼璺紪鎺?API 绔偣
 
-POST /pipeline/run-full：串联 Phase 5 → 6 → 7
-    GET /pipeline/status/{task_id}：查询 pipeline 状态
-
-约束：
-- 纯 orchestration，不重写任何阶段逻辑
-- 串联现有公开 API/方法
-- 不暴露核心内部对象
-"""
+POST /pipeline/run-full锛氫覆鑱?Phase 5 鈫?6 鈫?7
+    GET /pipeline/status/{task_id}锛氭煡璇?pipeline 鐘舵€?
+绾︽潫锛?- 绾?orchestration锛屼笉閲嶅啓浠讳綍闃舵閫昏緫
+- 涓茶仈鐜版湁鍏紑 API/鏂规硶
+- 涓嶆毚闇叉牳蹇冨唴閮ㄥ璞?"""
 
 from __future__ import annotations
 
+import logging
 import time
 import uuid
 from datetime import datetime
@@ -36,6 +34,7 @@ from apps.dto.api.live import (
 )
 
 router = APIRouter(prefix="/pipeline", tags=["Pipeline"])
+logger = logging.getLogger(__name__)
 
 
 @router.post(
@@ -52,11 +51,8 @@ async def run_full_pipeline(
     user: User = Depends(require_suggest),
 ) -> PipelineRunFullResponse:
     """
-    全链路编排（Phase 5 → 6 → 7）。
-
-    串联现有公开方法，不重写阶段逻辑。
-    suggestion-only：只输出决策和仓位计划，不改 registry 真值。
-    """
+    鍏ㄩ摼璺紪鎺掞紙Phase 5 鈫?6 鈫?7锛夈€?
+    涓茶仈鐜版湁鍏紑鏂规硶锛屼笉閲嶅啓闃舵閫昏緫銆?    suggestion-only锛氬彧杈撳嚭鍐崇瓥鍜屼粨浣嶈鍒掞紝涓嶆敼 registry 鐪熷€笺€?    """
     phases: list[PipelinePhaseResult] = []
     decision_view: Optional[PipelineDecisionView] = None
     plan_view: Optional[PipelinePlanView] = None
@@ -65,7 +61,7 @@ async def run_full_pipeline(
 
     ts = req.timestamp or datetime.utcnow()
 
-    # ── Phase 5：分析 ──────────────────────────────────
+    # 鈹€鈹€ Phase 5锛氬垎鏋?鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
     t0 = time.perf_counter()
     try:
         analysis_result = _run_phase5(req, ts)
@@ -88,7 +84,7 @@ async def run_full_pipeline(
         error_msg = f"Phase 5 failed: {e}"
         status = "partial"
 
-    # ── Phase 6：仲裁 ──────────────────────────────────
+    # 鈹€鈹€ Phase 6锛氫徊瑁?鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
     t0 = time.perf_counter()
     decision = None
     try:
@@ -122,7 +118,7 @@ async def run_full_pipeline(
         error_msg = f"Phase 6 failed: {e}"
         status = "partial"
 
-    # ── Phase 7：风控 ──────────────────────────────────
+    # 鈹€鈹€ Phase 7锛氶鎺?鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
     t0 = time.perf_counter()
     plan = None
     if decision and decision.bias not in ("no_trade", "exit_bias"):
@@ -162,7 +158,7 @@ async def run_full_pipeline(
             phase="risk",
             ok=True,
             duration_ms=(time.perf_counter() - t0) * 1000,
-            detail={"skipped": True, "reason": f"bias={getattr(decision, 'bias', 'N/A')} — no trade"},
+            detail={"skipped": True, "reason": f"bias={getattr(decision, 'bias', 'N/A')} 鈥?no trade"},
         ))
 
     _log_pipeline_feedback(user.id, req, phases, decision_view, plan_view)
@@ -214,15 +210,20 @@ async def run_live_pipeline(
         modules=[LiveModuleView(**item) for item in result["modules"]],
         decision=result["decision"],
         plan=result["plan"],
+        suggestions=result["suggestions"],
+        explanation=result["explanation"],
+        watch_plan=result["watch_plan"],
+        data_status=result["data_status"],
+        execution=result["execution"],
         audit=result["audit"],
         feedback=result["feedback"],
     )
 
 
-# ── Phase 5 ─────────────────────────────────────────────────
+# 鈹€鈹€ Phase 5 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
 
 def _run_phase5(req: PipelineRunFullRequest, ts: datetime) -> dict:
-    """调用 Phase 5 分析引擎（内部 import）。"""
+    """璋冪敤 Phase 5 鍒嗘瀽寮曟搸锛堝唴閮?import锛夈€?"""
     from apps.api.routers.analysis import _call_analysis_engine
     signal = _call_analysis_engine(req.symbol, {
         "direction": req.direction,
@@ -236,14 +237,12 @@ def _run_phase5(req: PipelineRunFullRequest, ts: datetime) -> dict:
     }
 
 
-# ── Phase 6 ─────────────────────────────────────────────────
+# 鈹€鈹€ Phase 6 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
 
 def _run_phase6(req: PipelineRunFullRequest, ts: datetime):
     """
-    调用 Phase 6 ArbitrationEngine.arbitrate()。
-
-    复用 arbitration router 的内部实现，不重写逻辑。
-    """
+    璋冪敤 Phase 6 ArbitrationEngine.arbitrate()銆?
+    澶嶇敤 arbitration router 鐨勫唴閮ㄥ疄鐜帮紝涓嶉噸鍐欓€昏緫銆?    """
     from apps.api.routers.arbitration import _call_arbitration_engine
     from apps.dto.api.arbitration import ArbitrationRunRequest
     ar_req = ArbitrationRunRequest(
@@ -258,23 +257,20 @@ def _run_phase6(req: PipelineRunFullRequest, ts: datetime):
 
 
 def _bias_to_risk_format(direction: str, arb_bias: str) -> str:
-    """将仲裁 bias 或 direction 映射为 RiskCalculateRequest 格式。"""
-    if arb_bias in ("long_bias", "short_bias", "hold_bias", "no_trade"):
+    """灏嗕徊瑁?bias 鎴?direction 鏄犲皠涓?RiskCalculateRequest 鏍煎紡銆?"""
+    if arb_bias in ("long_bias", "short_bias", "hold_bias", "no_trade", "reduce_risk", "exit_bias"):
         return arb_bias
-    # 从 direction 推导
+    # 浠?direction 鎺ㄥ
     dir_map = {"LONG": "long_bias", "SHORT": "short_bias", "FLAT": "no_trade"}
     return dir_map.get(direction.upper(), "no_trade")
 
 
-# ── Phase 7 ─────────────────────────────────────────────────
+# 鈹€鈹€ Phase 7 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
 
 def _run_phase7(req: PipelineRunFullRequest, decision, ts: datetime):
     """
-    调用 Phase 7 RiskEngine。
-
-    复用 risk router 的内部实现，不重写逻辑。
-    返回 core PositionPlan，由调用方转换为 PipelinePlanView。
-    """
+    璋冪敤 Phase 7 RiskEngine銆?
+    澶嶇敤 risk router 鐨勫唴閮ㄥ疄鐜帮紝涓嶉噸鍐欓€昏緫銆?    杩斿洖 core PositionPlan锛岀敱璋冪敤鏂硅浆鎹负 PipelinePlanView銆?    """
     from apps.api.routers.risk import _call_risk_engine
     from apps.dto.api.risk import RiskCalculateRequest
 
@@ -285,6 +281,10 @@ def _run_phase7(req: PipelineRunFullRequest, decision, ts: datetime):
         decision_id=decision.decision_id,
         bias=risk_bias,
         confidence=req.confidence,
+        direction=getattr(getattr(decision, "direction", None), "value", None),
+        target_direction=getattr(decision, "target_direction", None),
+        risk_adjustment=getattr(decision, "risk_adjustment", 1.0),
+        no_trade_reason=getattr(decision, "no_trade_reason", None),
         portfolio_value=100000.0,
         current_price=100.0,
         regime=req.regime,
@@ -297,20 +297,24 @@ def _run_phase7(req: PipelineRunFullRequest, decision, ts: datetime):
 def _run_live_pipeline_sync(req: LiveRunRequest) -> dict:
     from core.data.live import LiveAnalysisOrchestrator
 
-    orchestrator = LiveAnalysisOrchestrator()
+    orchestrator = LiveAnalysisOrchestrator(profile_id=req.profile_id)
     result = orchestrator.run_live_pipeline(
         symbol=req.symbol,
         timeframe=req.timeframe,
+        market_type=req.market_type,
         lookback=req.lookback,
         start=req.start,
         end=req.end,
         news_limit=req.news_limit,
+        profile_id=req.profile_id,
     )
     bars = result["bars"]
     decision = result["decision"]
     plan = result["plan"]
     decision_record = result["decision_record"]
     risk_audit = result["risk_audit"]
+    execution_result = result["execution_result"]
+    execution_record = result["execution_record"]
     feedbacks = result["feedbacks"]
     modules = [module.to_public() for module in result["modules"].values()]
 
@@ -321,11 +325,29 @@ def _run_live_pipeline_sync(req: LiveRunRequest) -> dict:
         bias_direction = "LONG"
     elif decision.bias == "short_bias":
         bias_direction = "SHORT"
+    plan_veto_reason = (plan.veto_reasons or [None])[0]
+    failed_check = next((lc for lc in (plan.limit_checks or []) if not lc.passed), None)
+    plan_veto_source = None
+    plan_decision_gate_reason = None
+    if plan.veto_triggered:
+        if failed_check is not None:
+            plan_veto_source = failed_check.limit_name
+        elif plan_veto_reason and str(plan_veto_reason).startswith("sizing_zero_quantity"):
+            plan_veto_source = "sizing"
+            plan_decision_gate_reason = str(plan_veto_reason)
+        elif plan_veto_reason and ("arbitration" in str(plan_veto_reason) or "no_trade" in str(plan_veto_reason)):
+            plan_veto_source = "arbitration"
+            plan_decision_gate_reason = str(plan_veto_reason)
+        else:
+            plan_veto_source = "decision_gate"
+            plan_decision_gate_reason = str(plan_veto_reason) if plan_veto_reason else None
 
     return {
         "data": {
             "symbol": req.symbol,
             "timeframe": req.timeframe,
+            "market_type": req.market_type,
+            "profile_id": result["profile"].profile_id,
             "lookback": req.lookback,
             "start": result["start"],
             "end": result["end"],
@@ -350,19 +372,42 @@ def _run_live_pipeline_sync(req: LiveRunRequest) -> dict:
             "direction": plan.direction.value if hasattr(plan.direction, "value") else str(plan.direction),
             "final_quantity": plan.final_quantity,
             "veto_triggered": plan.veto_triggered,
+            "veto_reason": plan_veto_reason,
+            "veto_source": plan_veto_source,
+            "decision_gate_reason": plan_decision_gate_reason,
             "limit_checks": [
                 {
                     "limit_name": lc.limit_name,
                     "passed": lc.passed,
                     "mode": lc.mode,
+                    "raw_qty": lc.raw_qty,
+                    "adjusted_qty": lc.actual_value,
+                    "details": lc.details,
                 }
                 for lc in (plan.limit_checks or [])
             ],
         },
+        "suggestions": result["suggestions"],
+        "explanation": result["explanation"],
+        "watch_plan": result["watch_plan"],
+        "data_status": result["data_status"],
         "audit": {
             "decision_record_id": decision_record.audit_id,
             "risk_audit_id": risk_audit.audit_id,
+            "execution_record_id": execution_record.audit_id if execution_record else None,
             "feedback_registry_appended": bool(feedbacks),
+        },
+        "execution": {
+            "mode": "simulation",
+            "status": (
+                "complete"
+                if execution_result and execution_result.report.is_complete
+                else "skipped" if execution_result is None else "partial"
+            ),
+            "fill_count": len(execution_result.fills) if execution_result else 0,
+            "total_filled_qty": float(execution_record.total_filled_qty) if execution_record else 0.0,
+            "avg_execution_price": execution_record.avg_execution_price if execution_record else None,
+            "execution_record_id": execution_record.audit_id if execution_record else None,
         },
         "feedback": {
             "count": len(feedbacks),
@@ -378,7 +423,7 @@ def _run_live_pipeline_sync(req: LiveRunRequest) -> dict:
     }
 
 
-# ── 审计日志 ───────────────────────────────────────────────
+# 鈹€鈹€ 瀹¤鏃ュ織 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
 
 def _log_pipeline_feedback(
     user_id: str,
@@ -403,5 +448,5 @@ def _log_pipeline_feedback(
             },
             result="accepted",
         )
-    except Exception:
-        pass
+    except Exception as exc:
+        logger.warning("Failed to append pipeline auth audit", exc_info=True)

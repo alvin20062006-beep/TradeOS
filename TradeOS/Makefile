@@ -133,10 +133,10 @@ pre-commit-install:
 check: lint test
 
 schema-check:
-	python -c "from ai_trading_tool.core.schemas import *; print('All schemas import OK')"
+	python -c "from core.schemas import *; print('All schemas import OK')"
 
 config-check:
-	python -c "from ai_trading_tool.core.shared.config import get_config; c = get_config(); print(f'Config loaded: {c.env.environment}')"
+	python -c "from infra.config.settings import get_settings; c = get_settings(); print(f'Config loaded: {c.app_env}')"
 
 # ─────────────────────────────────────────────────────────────
 # DOCKER

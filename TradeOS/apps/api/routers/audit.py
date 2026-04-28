@@ -1,4 +1,4 @@
-"""Audit query APIs backed by real append-only stores."""
+﻿"""Audit query APIs backed by real append-only stores."""
 
 from __future__ import annotations
 

@@ -1,4 +1,4 @@
-"""Lazy Nautilus adapter exports."""
+﻿"""Lazy Nautilus adapter exports."""
 
 from __future__ import annotations
 
